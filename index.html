@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Transport Hub — book trusted transport & logistics services: freight, movers, courier, coach, ride, cold chain, ferry and more." />
+  <title>Transport Hub — Book Trusted Transport & Logistics</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231565d8'/%3E%3Ctext x='50' y='70' font-size='58' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3ET%3C/text%3E%3Ccircle cx='74' cy='30' r='12' fill='%23ff7a18'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ===================== TOP APP BAR ===================== -->
+  <header class="appbar">
+    <div class="appbar-inner">
+      <a class="brand" href="#/" data-link>
+        <span class="brand-logo material-symbols-rounded">local_shipping</span>
+        <span class="brand-name">Transport<span class="brand-accent">Hub</span></span>
+      </a>
+
+      <button class="loc-btn" id="locBtn" title="Set your location">
+        <span class="material-symbols-rounded">location_on</span>
+        <span id="locLabel">Set location</span>
+        <span class="material-symbols-rounded chev">expand_more</span>
+      </button>
+
+      <div class="search-wrap">
+        <span class="material-symbols-rounded">search</span>
+        <input id="globalSearch" type="search" placeholder="Search companies, services, routes…" autocomplete="off" />
+      </div>
+
+      <nav class="appbar-actions" id="appbarActions"><!-- injected --></nav>
+    </div>
+  </header>
+
+  <!-- ===================== MAIN VIEW ===================== -->
+  <main id="view" class="view"><!-- routed content --></main>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-logo material-symbols-rounded">local_shipping</span>
+        <strong>TransportHub</strong>
+        <p>The trusted marketplace connecting customers with vetted transport &amp; logistics providers.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Services</h4>
+        <a href="#/browse" data-link>Freight &amp; Cargo</a>
+        <a href="#/browse" data-link>Movers &amp; Relocation</a>
+        <a href="#/browse" data-link>Courier &amp; Parcel</a>
+        <a href="#/browse" data-link>Coach &amp; Bus</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#/about" data-link>How it works</a>
+        <a href="#/register-company" data-link>List your business</a>
+        <a href="#/dashboard" data-link>Provider dashboard</a>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <a href="#/about" data-link>Help center</a>
+        <a href="#/about" data-link>Trust &amp; safety</a>
+        <a href="#/about" data-link>Contact</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> TransportHub. Built as an offline-first demo (data stored locally in your browser).</span>
+    </div>
+  </footer>
+
+  <!-- ===================== MODAL ROOT ===================== -->
+  <div id="modalRoot"></div>
+  <div id="toastRoot" class="toast-root"></div>
+
+  <script src="js/store.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/pages.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
