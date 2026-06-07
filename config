@@ -1,0 +1,11 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[user]
+	name = pe********@go****.com
+	email = pefij31375@googxs.com
+[remote "genspark"]
+	url = https://www.genspark.ai/sb-git/me/genspark-95aefa0b-2871-4581-8b92-93b58b1bfd35.git
+	fetch = +refs/heads/*:refs/remotes/genspark/*
