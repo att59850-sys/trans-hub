@@ -3,11 +3,34 @@
 A trusted **transport & logistics marketplace** that connects customers with vetted
 transport providers — and lets providers list services and manage bookings.
 
-Built as an **offline-first** single-page web app: no backend or build step required.
-All data (users, companies, services, bookings, reviews) is stored locally in the
-browser via `localStorage`, seeded with realistic demo content on first load.
-
 > Design: **Style 1 — Modern Material Design** (trust blue + energetic orange).
+
+## 📦 Repository structure
+
+This repo ships **two implementations of TransportHub that share the same design,
+data model and seed data**:
+
+| Path | Stack | Notes |
+|------|-------|-------|
+| [`flutter_app/`](flutter_app/) | **Flutter + Hive** | The **canonical app**, matching the project's original `flutter_app` intent. Offline-first with Hive local storage. Targets web, Android & iOS. **Start here.** |
+| Root (`index.html`, `js/`, `styles.css`) | Vanilla web SPA | Lightweight browser version backed by `localStorage`. Runs with zero build step. |
+
+Both contain the **same providers, services, reviews and demo bookings**, including
+the five newly-introduced service categories (cold-chain, heavy haul, EV, air/drone,
+ferry). See [`flutter_app/README.md`](flutter_app/README.md) for the Flutter app.
+
+> ⚠️ Build note: the Flutter **web release** (`flutter build web`) uses `dart2js`,
+> which needs ~1.5 GB RAM. The CI sandbox used to build this repo is capped at
+> under 1 GB, so the release web bundle is produced on a normal dev machine.
+> The source compiles cleanly with Flutter 3.24.x.
+
+---
+
+## Web SPA (root)
+
+The vanilla version is an **offline-first** single-page web app: no backend or build
+step required. All data (users, companies, services, bookings, reviews) is stored
+locally in the browser via `localStorage`, seeded with realistic demo content.
 
 ## ✨ Features
 
