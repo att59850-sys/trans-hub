@@ -97,7 +97,8 @@ class _BrowseScreenState extends State<BrowseScreen> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             children: [
-              _filterChip('All', _cat == null, () => setState(() => _cat = null)),
+              _filterChip(
+                  'All', _cat == null, () => setState(() => _cat = null)),
               ...kCategories.map((c) => _filterChip(
                   c.name, _cat == c.id, () => setState(() => _cat = c.id),
                   isNew: c.isNew)),
@@ -126,7 +127,8 @@ class _BrowseScreenState extends State<BrowseScreen> {
               borderRadius: BorderRadius.circular(12),
               items: const [
                 DropdownMenuItem(value: 'rating', child: Text('Top rated')),
-                DropdownMenuItem(value: 'reviews', child: Text('Most reviewed')),
+                DropdownMenuItem(
+                    value: 'reviews', child: Text('Most reviewed')),
                 DropdownMenuItem(value: 'fleet', child: Text('Largest fleet')),
                 DropdownMenuItem(value: 'name', child: Text('Name A-Z')),
               ],

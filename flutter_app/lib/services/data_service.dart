@@ -71,10 +71,9 @@ class DataService extends ChangeNotifier {
   List<AppUser> get users =>
       _usersBox.values.map((e) => AppUser.fromJson(e as Map)).toList();
 
-  List<Booking> get bookings => _bookingsBox.values
-      .map((e) => Booking.fromJson(e as Map))
-      .toList()
-    ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  List<Booking> get bookings =>
+      _bookingsBox.values.map((e) => Booking.fromJson(e as Map)).toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
   List<Review> reviewsFor(String companyId) => _reviewsBox.values
       .map((e) => Review.fromJson(e as Map))
@@ -116,8 +115,8 @@ class DataService extends ChangeNotifier {
     if (users.any((u) => u.email == email)) {
       throw Exception('An account with that email already exists.');
     }
-    final user = AppUser(
-        name: name, email: email, password: password, role: role);
+    final user =
+        AppUser(name: name, email: email, password: password, role: role);
     if (role == UserRole.company) {
       final company = Company(
         ownerId: user.id,

@@ -18,8 +18,7 @@ void showToast(BuildContext context, String msg, {bool error = false}) {
       ]),
       backgroundColor: error ? AppColors.danger : AppColors.ink,
       behavior: SnackBarBehavior.floating,
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
       width: 360,
     ));
 }
@@ -41,8 +40,8 @@ class RatingBadge extends StatelessWidget {
         const Icon(Icons.star, color: AppColors.orange, size: 16),
         const SizedBox(width: 3),
         Text(avg > 0 ? '$avg' : '—',
-            style: const TextStyle(
-                fontWeight: FontWeight.w700, fontSize: 13.5)),
+            style:
+                const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
         const SizedBox(width: 3),
         Text('($count)',
             style: const TextStyle(color: AppColors.muted, fontSize: 13)),
@@ -83,8 +82,7 @@ class NewPill extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
         decoration: BoxDecoration(
-            color: AppColors.orange,
-            borderRadius: BorderRadius.circular(999)),
+            color: AppColors.orange, borderRadius: BorderRadius.circular(999)),
         child: const Text('NEW',
             style: TextStyle(
                 color: Colors.white,
@@ -121,13 +119,12 @@ class CompanyCard extends StatelessWidget {
           border: Border.all(color: AppColors.line),
           boxShadow: const [
             BoxShadow(
-                color: Color(0x14102E3E),
-                blurRadius: 12,
-                offset: Offset(0, 4))
+                color: Color(0x14102E3E), blurRadius: 12, offset: Offset(0, 4))
           ],
         ),
         clipBehavior: Clip.antiAlias,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           // cover
           Stack(children: [
             Container(
@@ -183,7 +180,8 @@ class CompanyCard extends StatelessWidget {
           ]),
           Padding(
             padding: const EdgeInsets.all(14),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(cat.name.toUpperCase(),
                   style: const TextStyle(
                       color: AppColors.orange,
@@ -202,8 +200,8 @@ class CompanyCard extends StatelessWidget {
               Text(c.tagline,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontSize: 13.5, color: AppColors.muted)),
+                  style:
+                      const TextStyle(fontSize: 13.5, color: AppColors.muted)),
               const SizedBox(height: 10),
               Wrap(spacing: 6, runSpacing: 6, children: [
                 MetaTag(Icons.location_on, c.city),
@@ -216,11 +214,10 @@ class CompanyCard extends StatelessWidget {
                 Expanded(
                   child: RichText(
                     text: TextSpan(
-                      style: const TextStyle(
-                          fontSize: 13, color: AppColors.ink2),
+                      style:
+                          const TextStyle(fontSize: 13, color: AppColors.ink2),
                       children: [
-                        TextSpan(
-                            text: minPrice != null ? 'from ' : ''),
+                        TextSpan(text: minPrice != null ? 'from ' : ''),
                         TextSpan(
                           text: minPrice != null
                               ? '\$${minPrice.toStringAsFixed(minPrice == minPrice.roundToDouble() ? 0 : 2)}'
@@ -238,15 +235,13 @@ class CompanyCard extends StatelessWidget {
                   onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (_) =>
-                              CompanyScreen(companyId: c.id))),
+                          builder: (_) => CompanyScreen(companyId: c.id))),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.orange,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 8)),
                   icon: const Icon(Icons.event_available, size: 18),
-                  label: const Text('Book',
-                      style: TextStyle(fontSize: 13)),
+                  label: const Text('Book', style: TextStyle(fontSize: 13)),
                 ),
               ]),
             ]),
@@ -279,17 +274,15 @@ class SectionHead extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(top: 24, bottom: 12),
-        child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                  child: Text(title,
-                      style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -.4))),
-              if (trailing != null) trailing!,
-            ]),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Expanded(
+              child: Text(title,
+                  style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -.4))),
+          if (trailing != null) trailing!,
+        ]),
       );
 }
 
@@ -307,8 +300,8 @@ class EmptyState extends StatelessWidget {
             Icon(icon, size: 54, color: AppColors.line),
             const SizedBox(height: 10),
             Text(title,
-                style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.w700)),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
             Text(sub,
                 textAlign: TextAlign.center,
@@ -333,8 +326,8 @@ class StatusBadge extends StatelessWidget {
     final c = map[status] ?? [AppColors.blue50, AppColors.blue];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-          color: c[0], borderRadius: BorderRadius.circular(999)),
+      decoration:
+          BoxDecoration(color: c[0], borderRadius: BorderRadius.circular(999)),
       child: Text(status,
           style: TextStyle(
               color: c[1], fontWeight: FontWeight.w700, fontSize: 11.5)),

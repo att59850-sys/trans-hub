@@ -306,8 +306,8 @@ const List<ServiceCategory> kCategories = [
       'Home & office moving, packing'),
   ServiceCategory('courier', 'Courier & Parcel', 'local_post_office',
       'Same-day & express delivery'),
-  ServiceCategory('coach', 'Coach & Bus', 'directions_bus',
-      'Group travel & charters'),
+  ServiceCategory(
+      'coach', 'Coach & Bus', 'directions_bus', 'Group travel & charters'),
   ServiceCategory(
       'ride', 'Ride & Taxi', 'local_taxi', 'On-demand passenger rides'),
   // New services
@@ -320,8 +320,8 @@ const List<ServiceCategory> kCategories = [
   ServiceCategory('ev', 'Green / EV Fleet', 'electric_bolt',
       'Zero-emission electric delivery',
       isNew: true),
-  ServiceCategory('air', 'Air & Drone Freight', 'send',
-      'Air cargo & last-mile drone',
+  ServiceCategory(
+      'air', 'Air & Drone Freight', 'send', 'Air cargo & last-mile drone',
       isNew: true),
   ServiceCategory('ferry', 'Ferry & Marine', 'directions_boat',
       'Ro-Ro, container & marine transfer',

@@ -15,9 +15,8 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final companies = _ds.companies;
-    final featured = [...companies]
-      ..sort((a, b) =>
-          _ds.ratingFor(b.id).avg.compareTo(_ds.ratingFor(a.id).avg));
+    final featured = [...companies]..sort(
+        (a, b) => _ds.ratingFor(b.id).avg.compareTo(_ds.ratingFor(a.id).avg));
     final top = featured.take(6).toList();
     final newCats = kCategories.where((c) => c.isNew).toList();
 
@@ -25,7 +24,8 @@ class HomeScreen extends StatelessWidget {
       appBar: BrandAppBar(actions: [
         TextButton.icon(
           onPressed: () => _showLocationSheet(context),
-          icon: const Icon(Icons.location_on, color: AppColors.orange, size: 20),
+          icon:
+              const Icon(Icons.location_on, color: AppColors.orange, size: 20),
           label: Text(_ds.location.isEmpty ? 'Set location' : _ds.location,
               style: const TextStyle(
                   color: AppColors.ink2, fontWeight: FontWeight.w600)),
@@ -146,22 +146,24 @@ class HomeScreen extends StatelessWidget {
                 border: Border.all(color: AppColors.line),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                CircleAvatar(
-                    radius: 23,
-                    backgroundColor: AppColors.blue50,
-                    child: Icon(AppIcons.of(c.icon),
-                        color: AppColors.blue, size: 24)),
-                const SizedBox(height: 8),
-                Text(c.name,
-                    maxLines: 2,
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.ink2)),
-              ]),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircleAvatar(
+                        radius: 23,
+                        backgroundColor: AppColors.blue50,
+                        child: Icon(AppIcons.of(c.icon),
+                            color: AppColors.blue, size: 24)),
+                    const SizedBox(height: 8),
+                    Text(c.name,
+                        maxLines: 2,
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.ink2)),
+                  ]),
             ),
           );
         },
@@ -220,8 +222,8 @@ class HomeScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-            colors: [AppColors.ink, Color(0xFF1C3A5E)]),
+        gradient:
+            const LinearGradient(colors: [AppColors.ink, Color(0xFF1C3A5E)]),
         borderRadius: BorderRadius.circular(22),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -250,10 +252,26 @@ class HomeScreen extends StatelessWidget {
 
   Widget _whyGrid() {
     final items = [
-      [Icons.verified_user, 'Vetted & verified', 'Every provider is reviewed before going live.'],
-      [Icons.payments, 'Transparent pricing', 'See rates up front or request a fast quote.'],
-      [Icons.reviews, 'Real reviews', 'Ratings from real bookings help you choose.'],
-      [Icons.support_agent, 'Always supported', 'Booking help whenever you need it.'],
+      [
+        Icons.verified_user,
+        'Vetted & verified',
+        'Every provider is reviewed before going live.'
+      ],
+      [
+        Icons.payments,
+        'Transparent pricing',
+        'See rates up front or request a fast quote.'
+      ],
+      [
+        Icons.reviews,
+        'Real reviews',
+        'Ratings from real bookings help you choose.'
+      ],
+      [
+        Icons.support_agent,
+        'Always supported',
+        'Booking help whenever you need it.'
+      ],
     ];
     return GridView.count(
       crossAxisCount: 2,
@@ -284,8 +302,7 @@ class HomeScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 10),
                       Text(f[1] as String,
-                          style:
-                              const TextStyle(fontWeight: FontWeight.w700)),
+                          style: const TextStyle(fontWeight: FontWeight.w700)),
                       const SizedBox(height: 4),
                       Text(f[2] as String,
                           style: const TextStyle(
@@ -323,7 +340,8 @@ void _showLocationSheet(BuildContext context) {
             onPressed: () {
               _ds.setLocation(ctrl.text.trim());
               Navigator.pop(ctx);
-              showToast(context,
+              showToast(
+                  context,
                   ctrl.text.trim().isEmpty
                       ? 'Location cleared'
                       : 'Location set to ${ctrl.text.trim()}');

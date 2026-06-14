@@ -23,8 +23,8 @@ class BookingsScreen extends StatelessWidget {
           'Log in to see your bookings',
           'Sign in or create a free account to book and track services.',
           action: ElevatedButton.icon(
-            onPressed: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const AuthScreen())),
+            onPressed: () => Navigator.push(
+                context, MaterialPageRoute(builder: (_) => const AuthScreen())),
             icon: const Icon(Icons.login),
             label: const Text('Log in / Sign up'),
           ),
@@ -64,8 +64,8 @@ class BookingsScreen extends StatelessWidget {
                                   : () => Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (_) => CompanyScreen(
-                                              companyId: c.id))),
+                                          builder: (_) =>
+                                              CompanyScreen(companyId: c.id))),
                               child: Text(c?.name ?? '—',
                                   style: const TextStyle(
                                       fontWeight: FontWeight.w700,

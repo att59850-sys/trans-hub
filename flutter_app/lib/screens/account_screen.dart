@@ -43,12 +43,11 @@ class AccountScreen extends StatelessWidget {
                   Text(u.name,
                       style: const TextStyle(
                           fontSize: 18, fontWeight: FontWeight.w700)),
-                  Text(u.email,
-                      style: const TextStyle(color: AppColors.muted)),
+                  Text(u.email, style: const TextStyle(color: AppColors.muted)),
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                     decoration: BoxDecoration(
                         color: AppColors.blue50,
                         borderRadius: BorderRadius.circular(999)),
@@ -65,8 +64,8 @@ class AccountScreen extends StatelessWidget {
         const SizedBox(height: 16),
         _tile(Icons.location_on, 'Location',
             _ds.location.isEmpty ? 'Not set' : _ds.location),
-        _tile(Icons.favorite, 'Saved providers',
-            '${_ds.favorites.length} saved'),
+        _tile(
+            Icons.favorite, 'Saved providers', '${_ds.favorites.length} saved'),
         const SizedBox(height: 16),
         OutlinedButton.icon(
           onPressed: () async {
@@ -130,7 +129,11 @@ class AccountScreen extends StatelessWidget {
 
   String _initials(String n) {
     final parts = n.trim().split(RegExp(r'\s+'));
-    return parts.take(2).map((w) => w.isNotEmpty ? w[0] : '').join().toUpperCase();
+    return parts
+        .take(2)
+        .map((w) => w.isNotEmpty ? w[0] : '')
+        .join()
+        .toUpperCase();
   }
 }
 
@@ -138,7 +141,8 @@ class AccountScreen extends StatelessWidget {
 class AuthScreen extends StatefulWidget {
   final bool embedded; // shown inside a tab (no back button)
   final bool startAsCompany;
-  const AuthScreen({this.embedded = false, this.startAsCompany = false, super.key});
+  const AuthScreen(
+      {this.embedded = false, this.startAsCompany = false, super.key});
   @override
   State<AuthScreen> createState() => _AuthScreenState();
 }
@@ -163,8 +167,8 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() => _error = null);
     try {
       if (_isLogin) {
-        final u = _ds.login(
-            email: _email.text.trim(), password: _password.text);
+        final u =
+            _ds.login(email: _email.text.trim(), password: _password.text);
         if (!widget.embedded && mounted) Navigator.pop(context);
         showToast(context, 'Welcome back, ${u.name.split(' ').first}');
       } else {
@@ -207,10 +211,11 @@ class _AuthScreenState extends State<AuthScreen> {
             border: Border.all(color: AppColors.line),
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(_isLogin ? 'Welcome back' : 'Create your account',
-                style: const TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.w800)),
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
             Text(
                 _isLogin
@@ -244,8 +249,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 decoration: const InputDecoration(labelText: 'Password')),
             if (_error != null) ...[
               const SizedBox(height: 10),
-              Text(_error!,
-                  style: const TextStyle(color: AppColors.danger)),
+              Text(_error!, style: const TextStyle(color: AppColors.danger)),
             ],
             const SizedBox(height: 16),
             SizedBox(
@@ -295,8 +299,7 @@ class _AuthScreenState extends State<AuthScreen> {
     );
 
     if (widget.embedded) {
-      return Scaffold(
-          appBar: const BrandAppBar(title: 'Account'), body: body);
+      return Scaffold(appBar: const BrandAppBar(title: 'Account'), body: body);
     }
     return Scaffold(appBar: AppBar(title: const Text('Account')), body: body);
   }
@@ -314,14 +317,11 @@ class _AuthScreenState extends State<AuthScreen> {
                 color: active ? Colors.white : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: active
-                    ? const [
-                        BoxShadow(color: Color(0x14102E3E), blurRadius: 4)
-                      ]
+                    ? const [BoxShadow(color: Color(0x14102E3E), blurRadius: 4)]
                     : null),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(icon,
-                  size: 18,
-                  color: active ? AppColors.blue : AppColors.ink2),
+                  size: 18, color: active ? AppColors.blue : AppColors.ink2),
               const SizedBox(width: 6),
               Text(label,
                   style: TextStyle(

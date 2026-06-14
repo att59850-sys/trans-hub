@@ -35,14 +35,16 @@ class _DashboardScreenState extends State<DashboardScreen>
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 16,
-        title: Text(c.name,
-            style: const TextStyle(fontWeight: FontWeight.w800)),
+        title:
+            Text(c.name, style: const TextStyle(fontWeight: FontWeight.w800)),
         actions: [
           IconButton(
             tooltip: 'View public page',
             icon: const Icon(Icons.open_in_new),
-            onPressed: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => CompanyScreen(companyId: c.id))),
+            onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => CompanyScreen(companyId: c.id))),
           ),
         ],
         bottom: TabBar(
@@ -145,8 +147,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         decoration: BoxDecoration(
                             color: AppColors.blue50,
                             borderRadius: BorderRadius.circular(12)),
-                        child:
-                            Icon(AppIcons.of(s.icon), color: AppColors.blue),
+                        child: Icon(AppIcons.of(s.icon), color: AppColors.blue),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -270,14 +271,35 @@ class _DashboardScreenState extends State<DashboardScreen>
     String icon = svc?.icon ?? 'local_shipping';
     bool active = svc?.active ?? true;
     const units = [
-      'flat', 'per mile', 'per kg', 'per pallet', 'per hour', 'per day',
-      'per trip', 'per vehicle', 'monthly', 'add-on', 'quote'
+      'flat',
+      'per mile',
+      'per kg',
+      'per pallet',
+      'per hour',
+      'per day',
+      'per trip',
+      'per vehicle',
+      'monthly',
+      'add-on',
+      'quote'
     ];
     const icons = [
-      'local_shipping', 'inventory_2', 'directions_bus', 'local_taxi',
-      'ac_unit', 'precision_manufacturing', 'electric_bolt', 'send',
-      'directions_boat', 'bolt', 'schedule', 'home', 'flight', 'my_location',
-      'medical_services', 'eco'
+      'local_shipping',
+      'inventory_2',
+      'directions_bus',
+      'local_taxi',
+      'ac_unit',
+      'precision_manufacturing',
+      'electric_bolt',
+      'send',
+      'directions_boat',
+      'bolt',
+      'schedule',
+      'home',
+      'flight',
+      'my_location',
+      'medical_services',
+      'eco'
     ];
 
     showModalBottomSheet(
@@ -297,25 +319,21 @@ class _DashboardScreenState extends State<DashboardScreen>
               const SizedBox(height: 14),
               TextField(
                   controller: name,
-                  decoration:
-                      const InputDecoration(labelText: 'Service name')),
+                  decoration: const InputDecoration(labelText: 'Service name')),
               const SizedBox(height: 12),
               TextField(
                   controller: desc,
                   maxLines: 2,
-                  decoration:
-                      const InputDecoration(labelText: 'Description')),
+                  decoration: const InputDecoration(labelText: 'Description')),
               const SizedBox(height: 12),
               Row(children: [
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     value: unit,
                     isExpanded: true,
-                    decoration:
-                        const InputDecoration(labelText: 'Pricing'),
+                    decoration: const InputDecoration(labelText: 'Pricing'),
                     items: units
-                        .map((u) =>
-                            DropdownMenuItem(value: u, child: Text(u)))
+                        .map((u) => DropdownMenuItem(value: u, child: Text(u)))
                         .toList(),
                     onChanged: (v) => setSt(() => unit = v!),
                   ),
@@ -338,8 +356,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     .map((i) => DropdownMenuItem(
                         value: i,
                         child: Row(children: [
-                          Icon(AppIcons.of(i),
-                              size: 18, color: AppColors.blue),
+                          Icon(AppIcons.of(i), size: 18, color: AppColors.blue),
                           const SizedBox(width: 8),
                           Text(i),
                         ])))
@@ -374,8 +391,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                       _ds.addService(c.id, s);
                     }
                     Navigator.pop(ctx);
-                    showToast(context,
-                        editing ? 'Service updated' : 'Service added');
+                    showToast(
+                        context, editing ? 'Service updated' : 'Service added');
                   },
                   icon: const Icon(Icons.save),
                   label: Text(editing ? 'Save service' : 'Add service'),
@@ -398,7 +415,13 @@ class ProfileEditor extends StatefulWidget {
 }
 
 class _ProfileEditorState extends State<ProfileEditor> {
-  late TextEditingController _name, _tagline, _city, _fleet, _years, _coverage, _desc;
+  late TextEditingController _name,
+      _tagline,
+      _city,
+      _fleet,
+      _years,
+      _coverage,
+      _desc;
   late String _category;
 
   @override
@@ -440,15 +463,13 @@ class _ProfileEditorState extends State<ProfileEditor> {
         Expanded(
             child: TextField(
                 controller: _city,
-                decoration:
-                    const InputDecoration(labelText: 'City / base'))),
+                decoration: const InputDecoration(labelText: 'City / base'))),
         const SizedBox(width: 10),
         Expanded(
             child: TextField(
                 controller: _fleet,
                 keyboardType: TextInputType.number,
-                decoration:
-                    const InputDecoration(labelText: 'Fleet size'))),
+                decoration: const InputDecoration(labelText: 'Fleet size'))),
       ]),
       const SizedBox(height: 12),
       Row(children: [
@@ -456,21 +477,19 @@ class _ProfileEditorState extends State<ProfileEditor> {
             child: TextField(
                 controller: _years,
                 keyboardType: TextInputType.number,
-                decoration:
-                    const InputDecoration(labelText: 'Years active'))),
+                decoration: const InputDecoration(labelText: 'Years active'))),
         const SizedBox(width: 10),
         Expanded(
             child: TextField(
                 controller: _coverage,
-                decoration: const InputDecoration(
-                    labelText: 'Coverage (comma sep.)'))),
+                decoration:
+                    const InputDecoration(labelText: 'Coverage (comma sep.)'))),
       ]),
       const SizedBox(height: 12),
       TextField(
           controller: _desc,
           maxLines: 4,
-          decoration:
-              const InputDecoration(labelText: 'About your business')),
+          decoration: const InputDecoration(labelText: 'About your business')),
       const SizedBox(height: 16),
       SizedBox(
         width: double.infinity,

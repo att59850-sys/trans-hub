@@ -93,7 +93,8 @@ class CompanyScreen extends StatelessWidget {
                       Wrap(spacing: 8, runSpacing: 8, children: [
                         RatingBadge(r.avg, r.count),
                         MetaTag(Icons.location_on, c.city),
-                        MetaTag(Icons.local_shipping, '${c.fleetSize}+ vehicles'),
+                        MetaTag(
+                            Icons.local_shipping, '${c.fleetSize}+ vehicles'),
                         MetaTag(Icons.history, '${c.yearsActive} yrs'),
                         ...c.coverage.map((cv) => MetaTag(Icons.public, cv)),
                       ]),
@@ -101,8 +102,7 @@ class CompanyScreen extends StatelessWidget {
                       Row(children: [
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: () =>
-                                openBookingSheet(context, c, null),
+                            onPressed: () => openBookingSheet(context, c, null),
                             style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.orange),
                             icon: const Icon(Icons.request_quote),
@@ -117,14 +117,12 @@ class CompanyScreen extends StatelessWidget {
                           label: const Text('Contact'),
                         ),
                       ]),
-
                       const SectionHead('Services & pricing'),
                       if (services.isEmpty)
                         const EmptyState(Icons.inventory,
                             'No services listed yet', 'Check back soon.')
                       else
                         ...services.map((s) => _serviceRow(context, c, s)),
-
                       const SectionHead('About'),
                       Container(
                         width: double.infinity,
@@ -138,7 +136,6 @@ class CompanyScreen extends StatelessWidget {
                             style: const TextStyle(
                                 color: AppColors.ink2, height: 1.5)),
                       ),
-
                       SectionHead('Reviews (${reviews.length})',
                           trailing: TextButton.icon(
                             onPressed: () => _writeReview(context, c),
@@ -146,7 +143,8 @@ class CompanyScreen extends StatelessWidget {
                             label: const Text('Write'),
                           )),
                       if (reviews.isEmpty)
-                        const Text('No reviews yet — be the first after booking.',
+                        const Text(
+                            'No reviews yet — be the first after booking.',
                             style: TextStyle(color: AppColors.muted))
                       else
                         ...reviews.map((rv) => _reviewTile(rv)),
@@ -179,7 +177,8 @@ class CompanyScreen extends StatelessWidget {
         ),
         const SizedBox(width: 14),
         Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(s.name, style: const TextStyle(fontWeight: FontWeight.w700)),
           Text(s.desc,
               style: const TextStyle(color: AppColors.muted, fontSize: 13)),
@@ -187,8 +186,8 @@ class CompanyScreen extends StatelessWidget {
         const SizedBox(width: 8),
         Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
           Text(s.priceLabel,
-              style: const TextStyle(
-                  fontWeight: FontWeight.w800, fontSize: 15)),
+              style:
+                  const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
           const SizedBox(height: 4),
           ElevatedButton(
             onPressed: () => openBookingSheet(context, c, s),
@@ -230,13 +229,16 @@ class CompanyScreen extends StatelessWidget {
 
   String _initials(String n) {
     final parts = n.trim().split(RegExp(r'\s+'));
-    return parts.take(2).map((w) => w.isNotEmpty ? w[0] : '').join().toUpperCase();
+    return parts
+        .take(2)
+        .map((w) => w.isNotEmpty ? w[0] : '')
+        .join()
+        .toUpperCase();
   }
 
   void _writeReview(BuildContext context, Company c) {
     int rating = 5;
-    final nameCtrl =
-        TextEditingController(text: _ds.currentUser?.name ?? '');
+    final nameCtrl = TextEditingController(text: _ds.currentUser?.name ?? '');
     final textCtrl = TextEditingController();
     showModalBottomSheet(
       context: context,
@@ -249,8 +251,8 @@ class CompanyScreen extends StatelessWidget {
               20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Text('Review ${c.name}',
-                style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.w700)),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
             const SizedBox(height: 14),
             Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -272,8 +274,7 @@ class CompanyScreen extends StatelessWidget {
                 controller: textCtrl,
                 maxLines: 3,
                 decoration: const InputDecoration(
-                    labelText: 'Review',
-                    hintText: 'How was your experience?')),
+                    labelText: 'Review', hintText: 'How was your experience?')),
             const SizedBox(height: 14),
             SizedBox(
               width: double.infinity,
@@ -354,8 +355,7 @@ void openBookingSheet(
               Expanded(
                   child: TextField(
                       controller: pickup,
-                      decoration:
-                          const InputDecoration(labelText: 'Pickup'))),
+                      decoration: const InputDecoration(labelText: 'Pickup'))),
               const SizedBox(width: 10),
               Expanded(
                   child: TextField(
@@ -392,14 +392,13 @@ void openBookingSheet(
               Expanded(
                   child: TextField(
                       controller: email,
-                      decoration:
-                          const InputDecoration(labelText: 'Email'))),
+                      decoration: const InputDecoration(labelText: 'Email'))),
             ]),
             const SizedBox(height: 12),
             TextField(
                 controller: phone,
-                decoration: const InputDecoration(
-                    labelText: 'Phone (optional)')),
+                decoration:
+                    const InputDecoration(labelText: 'Phone (optional)')),
             const SizedBox(height: 12),
             TextField(
                 controller: notes,
