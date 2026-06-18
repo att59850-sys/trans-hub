@@ -1,30 +1,42 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+
+import '../core/di/injection.dart';
+import '../core/utils/password_hasher.dart';
+import '../data/datasources/local/hive_local_datasource.dart';
+import '../domain/entities/booking_status.dart' as dom;
 import '../models/models.dart';
 import 'seed_data.dart';
 
-/// Offline-first data layer backed by Hive (as the original plan specified).
-/// Acts as the app's "backend": auth, companies, services, bookings, reviews,
-/// favorites. A [ChangeNotifier] so the UI rebuilds reactively.
+/// Presentation controller (TH-005).
+///
+/// Previously a monolithic singleton that owned all persistence. It has been
+/// decomposed: persistence now lives in the repository layer
+/// (`data/repositories/*`, wired through `core/di/injection.dart`), and Hive
+/// access is centralized in [HiveLocalDataSource]. This class is now a thin
+/// reactive facade ([ChangeNotifier]) the legacy screens still bind to.
+///
+/// Security (P2/TH-010): passwords are stored as salted hashes via
+/// [PasswordHasher] — never plaintext.
 class DataService extends ChangeNotifier {
-  static final DataService instance = DataService._();
   DataService._();
+  static final DataService instance = DataService._();
 
-  late Box _box; // single settings/meta box (session, location, favorites)
-  late Box _companiesBox;
-  late Box _usersBox;
-  late Box _bookingsBox;
-  late Box _reviewsBox;
+  final HiveLocalDataSource _local = HiveLocalDataSource.instance;
+  final PasswordHasher _hasher = const PasswordHasher();
 
   static const _kSeeded = 'seeded_v2';
 
+  Box get _box => _local.meta;
+  Box get _companiesBox => _local.companies;
+  Box get _usersBox => _local.users;
+  Box get _bookingsBox => _local.bookings;
+  Box get _reviewsBox => _local.reviews;
+
   Future<void> init() async {
-    await Hive.initFlutter();
-    _box = await Hive.openBox('meta');
-    _companiesBox = await Hive.openBox('companies');
-    _usersBox = await Hive.openBox('users');
-    _bookingsBox = await Hive.openBox('bookings');
-    _reviewsBox = await Hive.openBox('reviews');
+    await _local.init();
+    // Register the Clean Architecture dependency graph (TH-008).
+    configureDependencies(_local);
 
     if (_box.get(_kSeeded) != true) {
       await _seed();
@@ -38,7 +50,11 @@ class DataService extends ChangeNotifier {
       await _companiesBox.put(c.id, c.toJson());
     }
     for (final u in seed.users) {
-      await _usersBox.put(u.id, u.toJson());
+      // Ensure seeded accounts are hashed, not plaintext (P2).
+      final stored =
+          u.password.contains(':') ? u.password : _hasher.hash(u.password);
+      final map = u.toJson()..['password'] = stored;
+      await _usersBox.put(u.id, map);
     }
     for (final b in seed.bookings) {
       await _bookingsBox.put(b.id, b.toJson());
@@ -49,11 +65,7 @@ class DataService extends ChangeNotifier {
   }
 
   Future<void> resetAll() async {
-    await _companiesBox.clear();
-    await _usersBox.clear();
-    await _bookingsBox.clear();
-    await _reviewsBox.clear();
-    await _box.clear();
+    await _local.clearAll();
     await _seed();
     await _box.put(_kSeeded, true);
     notifyListeners();
@@ -88,7 +100,7 @@ class DataService extends ChangeNotifier {
     return (avg: (avg * 10).round() / 10, count: rs.length);
   }
 
-  // ---------- session / auth ----------
+  // ---------- session / auth (salted hashing, P2) ----------
   AppUser? get currentUser {
     final id = _box.get('session');
     if (id == null) return null;
@@ -115,15 +127,19 @@ class DataService extends ChangeNotifier {
     if (users.any((u) => u.email == email)) {
       throw Exception('An account with that email already exists.');
     }
-    final user =
-        AppUser(name: name, email: email, password: password, role: role);
+    final user = AppUser(
+      name: name,
+      email: email,
+      password: _hasher.hash(password), // hashed, never plaintext
+      role: role,
+    );
     if (role == UserRole.company) {
       final company = Company(
         ownerId: user.id,
         name: companyName?.trim().isNotEmpty == true
             ? companyName!.trim()
-            : '$name\'s Transport',
-        tagline: 'New transport provider on TransportHub.',
+            : "$name's Transport",
+        tagline: 'New transport provider on Trans-Hub.',
         description:
             'Tell customers about your fleet, coverage area and what makes you reliable.',
         city: location.isNotEmpty ? location : 'Your City',
@@ -139,13 +155,18 @@ class DataService extends ChangeNotifier {
 
   AppUser login({required String email, required String password}) {
     email = email.trim().toLowerCase();
-    final u = users.firstWhere(
-      (u) => u.email == email && u.password == password,
-      orElse: () => throw Exception('Invalid email or password.'),
-    );
-    _box.put('session', u.id);
-    notifyListeners();
-    return u;
+    for (final u in users) {
+      if (u.email == email && _hasher.verify(password, u.password)) {
+        if (_hasher.isLegacy(u.password)) {
+          u.password = _hasher.hash(password);
+          _usersBox.put(u.id, u.toJson());
+        }
+        _box.put('session', u.id);
+        notifyListeners();
+        return u;
+      }
+    }
+    throw Exception('Invalid email or password.');
   }
 
   void logout() {
@@ -194,6 +215,10 @@ class DataService extends ChangeNotifier {
 
   List<Booking> bookingsForUser(String userId) =>
       bookings.where((b) => b.userId == userId).toList();
+
+  /// Ordered lifecycle statuses (TH-016) for UI pickers.
+  List<String> get bookingStatuses =>
+      dom.BookingStatus.values.map((s) => s.wire).toList();
 
   void setBookingStatus(String id, String status) {
     final j = _bookingsBox.get(id);

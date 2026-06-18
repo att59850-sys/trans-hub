@@ -1,11 +1,11 @@
-# 🚚 TransportHub — Flutter app
+# 🚚 Trans-Hub — Flutter app
 
-The **original-intended Flutter app** for the Transport Hub platform, rebuilt to
-match the project's first design (the repo was scaffolded as `flutter_app`).
-It is **offline-first using Hive** for local storage — exactly as the original
-plan in `trans hub.txt` specified — so it runs fully without a backend.
+The Trans-Hub marketplace, built with **Flutter** and structured per the
+modernization plan: **Clean Architecture** (presentation → domain → data),
+Riverpod state management, get_it dependency injection, and an offline-first
+Hive datasource that is ready to become a cache behind Supabase.
 
-> Design: **Style 1 — Modern Material Design** (trust blue `#1565D8` + energetic
+> Design: **Modern Material Design** (trust blue `#1565D8` + energetic
 > orange `#FF7A18`), built with Material 3 and Google Fonts (Inter).
 
 ## ✨ Features
@@ -67,26 +67,45 @@ flutter run            # Android / iOS device or emulator
 
 Use **Account → Reset demo data** to restore the original seed at any time.
 
-## 🗂️ Structure
+## 🗂️ Structure (Clean Architecture)
 ```
 lib/
-  main.dart                 # app entry + Hive init
-  models/models.dart        # User, Company, TransportService, Booking, Review + categories
+  main.dart                       # entry: Hive init → DI → ProviderScope
+  core/
+    config/app_config.dart        # env config (--dart-define), TH-009
+    di/injection.dart             # get_it composition root, TH-008
+    errors/failures.dart          # typed domain failures
+    utils/
+      id_generator.dart
+      password_hasher.dart        # salted SHA-256 hashing, P2/TH-010
+  domain/                         # pure Dart — no Flutter/Hive
+    entities/                     # one file per entity (+ entities.dart barrel)
+    repositories/repositories.dart# repository interfaces, TH-006
+    usecases/usecases.dart        # LoginUser, CreateBooking, …, TH-007
+  data/
+    datasources/local/hive_local_datasource.dart   # centralized Hive boxes, TH-013
+    models/                       # DTOs: toJson/fromJson per entity
+    repositories/                 # Hive-backed repository implementations
+  presentation/
+    providers/providers.dart      # Riverpod providers, TH-005
   services/
-    data_service.dart       # Hive-backed "backend" (auth, CRUD, bookings, reviews, favorites)
-    seed_data.dart          # seed providers/services/reviews (ported from web platform)
-  theme/app_theme.dart      # Material 3 theme, palette, icon & gradient maps
-  widgets/widgets.dart      # CompanyCard, RatingBadge, toasts, empty states, etc.
-  screens/
-    shell.dart              # bottom-nav shell + brand app bar
-    home_screen.dart
-    browse_screen.dart
-    company_screen.dart     # profile + booking/quote/review sheets
-    bookings_screen.dart    # customer bookings
-    dashboard_screen.dart   # provider dashboard
-    account_screen.dart     # auth (login/signup) + profile
+    data_service.dart             # reactive facade over the repo layer (legacy UI binding)
+    seed_data.dart                # development seed fixtures
+  theme/app_theme.dart            # Material 3 theme, palette, icon & gradient maps
+  widgets/widgets.dart            # CompanyCard, RatingBadge, toasts, status badges
+  screens/                        # home, browse, company, bookings, dashboard, account, shell
 ```
 
-## 🔌 Going cloud
-`DataService` isolates all persistence. To connect Firebase/Firestore later,
-swap its method bodies for SDK calls — screens and widgets are unaffected.
+## 🔌 Going cloud (TH-013/014)
+The repository **interfaces** in `domain/repositories/` are backend-agnostic. To
+go online, add a `SupabaseRemoteDataSource` under `data/datasources/remote/`,
+wrap each repository with a remote-first / cache-fallback implementation, and
+register it in `core/di/injection.dart`. The UI, providers and use cases are
+unaffected. See [`../supabase/`](../supabase) for the schema and RLS policies.
+
+## 🧪 Tests
+`test/` contains unit + use-case tests (run with `flutter test`):
+- `password_hasher_test.dart` — salted hashing & legacy fallback
+- `booking_status_test.dart` — 8-state lifecycle & transitions
+- `dto_roundtrip_test.dart` — JSON (de)serialization fidelity
+- `usecases_test.dart` — use cases against mocktail repositories

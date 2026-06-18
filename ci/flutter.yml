@@ -1,0 +1,78 @@
+# NOTE: copy this file to .github/workflows/flutter.yml to activate CI.
+# (It lives under ci/ because the automation token lacks GitHub "workflows" scope.)
+
+name: Flutter CI
+
+# TH-004 — Continuous Integration pipeline.
+# Gates every push / PR on: formatting, static analysis, tests, and a web build.
+# No direct merge to protected branches without this passing (TH-002).
+
+on:
+  push:
+    branches: [main, develop, genspark_ai_developer]
+  pull_request:
+    branches: [main, develop]
+
+defaults:
+  run:
+    working-directory: flutter_app
+
+jobs:
+  analyze-and-test:
+    name: Analyze & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Static analysis
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test --coverage
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: flutter_app/coverage/lcov.info
+          if-no-files-found: ignore
+
+  build-web:
+    name: Build Web
+    runs-on: ubuntu-latest
+    needs: analyze-and-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build web (release)
+        run: flutter build web --release
+
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: flutter_app/build/web
+          if-no-files-found: error

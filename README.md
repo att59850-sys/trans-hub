@@ -1,74 +1,86 @@
-# 🚚 TransportHub
+# 🚚 Trans-Hub
 
 A trusted **transport & logistics marketplace** that connects customers with vetted
 transport providers — and lets providers list services and manage bookings.
 
-> Design: **Style 1 — Modern Material Design** (trust blue + energetic orange).
+> Design: **Modern Material Design** (trust blue `#1565D8` + energetic orange `#FF7A18`).
+> Built with **Flutter** (web + Android + iOS), offline-first, sync-ready.
 
 ## 📦 Repository structure
 
-This repo ships **two implementations of TransportHub that share the same design,
-data model and seed data**:
+```
+trans-hub/
+├── flutter_app/          ← the application (Flutter, Clean Architecture)
+├── supabase/             ← backend: schema + RLS migrations (TH-009…012)
+├── ci/flutter.yml        ← CI/CD pipeline (TH-004); copy to .github/workflows/
+└── CONTRIBUTING.md       ← git workflow & quality gates (TH-002/003)
+```
 
-| Path | Stack | Notes |
-|------|-------|-------|
-| [`flutter_app/`](flutter_app/) | **Flutter + Hive** | The **canonical app**, matching the project's original `flutter_app` intent. Offline-first with Hive local storage. Targets web, Android & iOS. **Start here.** |
-| Root (`index.html`, `js/`, `styles.css`) | Vanilla web SPA | Lightweight browser version backed by `localStorage`. Runs with zero build step. |
+> **Single codebase (TH-001).** The legacy Vanilla-JS web SPA (`index.html`,
+> `js/`, `styles.css`) has been **removed**; Flutter Web is now the one web target.
 
-Both contain the **same providers, services, reviews and demo bookings**, including
-the five newly-introduced service categories (cold-chain, heavy haul, EV, air/drone,
-ferry). See [`flutter_app/README.md`](flutter_app/README.md) for the Flutter app.
+## 🏛️ Architecture
 
-> ⚠️ Build note: the Flutter **web release** (`flutter build web`) uses `dart2js`,
-> which needs ~1.5 GB RAM. The CI sandbox used to build this repo is capped at
-> under 1 GB, so the release web bundle is produced on a normal dev machine.
-> The source compiles cleanly with Flutter 3.24.x.
+The app follows **Clean Architecture** with three layers and a DI composition root:
 
----
+```
+presentation  (Riverpod providers, screens, widgets)
+     │  depends on
+domain        (entities, repository interfaces, use cases)   ← no Flutter/Hive
+     │  implemented by
+data          (Hive local datasource, DTOs, repository impls)
+```
 
-## Web SPA (root)
+- **State management:** `flutter_riverpod` (TH-005)
+- **Dependency injection:** `get_it` (`core/di/injection.dart`, TH-008)
+- **Repositories** (TH-006): Auth, Company, Booking, Review, Favorites, Location
+- **Use cases** (TH-007): LoginUser, RegisterUser, CreateBooking, UpdateBookingStatus,
+  SubmitReview, ToggleFavorite, …
+- **Security** (P2/TH-010): passwords are stored as **salted SHA-256 hashes**
+  locally; production auth is delegated to **Supabase Auth**.
+- **Offline-first** (TH-013): Hive is the local store today and becomes a cache
+  once the Supabase remote datasource is enabled.
 
-The vanilla version is an **offline-first** single-page web app: no backend or build
-step required. All data (users, companies, services, bookings, reviews) is stored
-locally in the browser via `localStorage`, seeded with realistic demo content.
+See [`flutter_app/README.md`](flutter_app/README.md) for app-level detail and
+[`supabase/README.md`](supabase/README.md) for the backend.
 
 ## ✨ Features
 
 ### For customers
-- Browse & search providers, filter by service type / verification, sort by rating, reviews, fleet size.
+- Browse & search providers; filter by service type / verification; sort by
+  rating, reviews or fleet size.
 - Rich company profiles with services, transparent pricing, ratings & reviews.
-- **Book a service** or **request a custom quote** in a few clicks.
-- Save favorites, set your location, track your bookings.
-- Write reviews and rate providers.
+- **Book a service** or **request a custom quote**.
+- Save favorites, set location, track bookings.
 
-### For providers (companies)
+### For providers
 - Free provider account & public business profile.
-- Provider **dashboard**: KPIs, manage services (add / edit / hide / delete), edit profile.
-- Receive bookings & quote requests; update booking status (pending → confirmed → completed / cancelled).
+- Dashboard: KPIs, manage services (CRUD), edit profile.
+- Receive bookings & quotes; advance status through the full lifecycle.
 
-### Two roles
-- **Customer** — browse, compare and book.
-- **Company / Provider** — list services and manage bookings.
+### Booking lifecycle (TH-016)
+```
+draft → quote_requested → quote_sent → pending → accepted → in_transit → completed
+                                                       └──────────→ cancelled
+```
+Every transition is recorded as a `booking_event`.
 
-## 🆕 New services introduced in this release
-On top of the original Freight, Movers, Courier, Coach and Ride categories, this
-update adds **five new transport service categories**:
+## 🆕 Transport service categories
+Original: Freight, Movers, Courier, Coach, Ride. Plus **five new** categories:
 
-| New service | What it covers |
-|-------------|----------------|
-| ❄️ **Cold-Chain Logistics** | Refrigerated & temperature-controlled transport (food, pharma) |
-| 🏗️ **Heavy Haul & Machinery** | Oversized / abnormal loads with permits & escorts |
-| ⚡ **Green / EV Fleet** | Zero-emission electric delivery + carbon reporting |
-| 🛩️ **Air & Drone Freight** | Next-flight-out air cargo + last-mile drone delivery |
-| ⛴️ **Ferry & Marine** | Ro-Ro vehicle ferries & container marine transfers |
-
-Each ships with seeded demo providers and bookable services.
+| New service | Covers |
+|-------------|--------|
+| ❄️ Cold-Chain Logistics | Refrigerated & temperature-controlled |
+| 🏗️ Heavy Haul & Machinery | Oversized / abnormal loads |
+| ⚡ Green / EV Fleet | Zero-emission electric delivery |
+| 🛩️ Air & Drone Freight | Air cargo + last-mile drone |
+| ⛴️ Ferry & Marine | Ro-Ro & container marine transfer |
 
 ## ▶️ Run locally
 ```bash
-cd /home/user/webapp
-python3 -m http.server 8080
-# open the served URL
+cd flutter_app
+flutter pub get
+flutter run -d chrome          # or: flutter run -d <device>
 ```
 
 ## 🔑 Demo logins
@@ -77,22 +89,28 @@ python3 -m http.server 8080
 | Customer | `customer@demo.com` | `demo123` |
 | Provider | `admin@transglobalfreight.com` | `demo123` |
 
-(Use the in-app **Sign up** to create more accounts. Reset all data by clearing
-the browser's local storage for this site.)
-
-## 🗂️ Project structure
+## 🧪 Quality
+```bash
+cd flutter_app
+dart format .
+flutter analyze     # strict lints (analysis_options.yaml, TH-003)
+flutter test        # unit + use-case tests (TH-020/021)
 ```
-index.html        # shell: app bar, footer, mount points
-styles.css        # Material design system (blue/orange)
-js/
-  store.js        # localStorage-backed "backend": auth, CRUD, bookings, reviews
-  data.js         # service categories (incl. new ones) + seed data
-  components.js   # reusable render helpers, modal & toast system
-  pages.js        # view renderers (home, browse, profile, dashboard, auth, about)
-  app.js          # hash router + all interaction wiring
-```
+CI runs all of the above plus a web build on every push/PR (TH-004).
 
-## 🔌 Going cloud
-The `js/store.js` layer is intentionally isolated. To connect a real backend
-(e.g. Firebase) later, swap its methods for API/SDK calls — the UI and pages
-do not depend on `localStorage` directly.
+> ⚠️ Build note: `flutter build web` uses `dart2js` (~1.5 GB RAM). It runs in
+> CI (GitHub Actions) and on normal dev machines; the constrained authoring
+> sandbox cannot complete it. All sources parse cleanly and dependencies resolve.
+
+## 🗺️ Modernization roadmap
+This repo is being executed against the **Trans-Hub Modernization Plan**. Status:
+
+| Phase | Items | Status |
+|-------|-------|--------|
+| 1 — Foundation | TH-001 consolidate · TH-002 workflow · TH-003 lints · TH-004 CI/CD | ✅ Done |
+| 2 — Architecture | TH-005 Riverpod · TH-006 repositories · TH-007 use cases · TH-008 DI | ✅ Done |
+| 3 — Backend | TH-009 envs · TH-010 auth · TH-011 schema · TH-012 RLS | 🟡 Scaffolded (migrations + config ready) |
+| 4 — Offline sync | TH-013 cache · TH-014 sync engine · TH-015 connectivity | 🔜 Next |
+| 5 — Product | TH-016 lifecycle ✅ · TH-017 verification (status field ✅) · TH-018 notifications · TH-019 maps | 🟡 Partial |
+| 6 — QA | TH-020 unit ✅ · TH-021 widget · TH-022 integration | 🟡 Partial |
+| 7 — Ops | TH-023 monitoring · TH-024 analytics · TH-025 deploy automation | 🔜 |
