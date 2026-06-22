@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import '../services/data_service.dart';
 import '../models/models.dart';
+import '../presentation/widgets/sync_status_bar.dart';
+import '../services/data_service.dart';
 import '../theme/app_theme.dart';
-import 'home_screen.dart';
-import 'browse_screen.dart';
-import 'bookings_screen.dart';
-import 'dashboard_screen.dart';
 import 'account_screen.dart';
+import 'bookings_screen.dart';
+import 'browse_screen.dart';
+import 'dashboard_screen.dart';
+import 'home_screen.dart';
 
 final _ds = DataService.instance;
 
@@ -39,7 +40,15 @@ class _AppShellState extends State<AppShell> {
     ];
 
     return Scaffold(
-      body: SafeArea(bottom: false, child: pages[_index]),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            const SyncStatusBar(),
+            Expanded(child: pages[_index]),
+          ],
+        ),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() {

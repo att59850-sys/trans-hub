@@ -109,8 +109,8 @@ This repo is being executed against the **Trans-Hub Modernization Plan**. Status
 |-------|-------|--------|
 | 1 — Foundation | TH-001 consolidate · TH-002 workflow · TH-003 lints · TH-004 CI/CD | ✅ Done |
 | 2 — Architecture | TH-005 Riverpod · TH-006 repositories · TH-007 use cases · TH-008 DI | ✅ Done |
-| 3 — Backend | TH-009 envs · TH-010 auth · TH-011 schema · TH-012 RLS | 🟡 Scaffolded (migrations + config ready) |
-| 4 — Offline sync | TH-013 cache · TH-014 sync engine · TH-015 connectivity | 🔜 Next |
-| 5 — Product | TH-016 lifecycle ✅ · TH-017 verification (status field ✅) · TH-018 notifications · TH-019 maps | 🟡 Partial |
+| 3 — Backend | TH-009 envs · TH-010 auth · TH-011 schema · TH-012 RLS | 🟡 Scaffolded (migrations + config + dio client ready) |
+| 4 — Offline sync | TH-013 cache+remote datasource ✅ · TH-014 sync engine + queue ✅ · TH-015 connectivity + banner ✅ | ✅ Done |
+| 5 — Product | TH-016 lifecycle ✅ · TH-017 verification ✅ · TH-018 notifications (domain + FCM abstraction) ✅ · TH-019 maps abstraction ✅ | 🟡 Mostly done (UI wiring pending) |
 | 6 — QA | TH-020 unit ✅ · TH-021 widget · TH-022 integration | 🟡 Partial |
-| 7 — Ops | TH-023 monitoring · TH-024 analytics · TH-025 deploy automation | 🔜 |
+| 7 — Ops | TH-023 monitoring abstraction ✅ · TH-024 analytics abstraction ✅ · TH-025 deploy automation | 🟡 Abstractions ready |

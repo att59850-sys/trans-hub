@@ -1,7 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/di/injection.dart';
+import '../../core/network/connectivity_service.dart';
+import '../../data/datasources/remote/sync_engine.dart';
 import '../../domain/entities/entities.dart';
+import '../../domain/repositories/notification_repository.dart';
 import '../../domain/repositories/repositories.dart';
 import '../../domain/usecases/usecases.dart';
 
@@ -23,6 +26,13 @@ final favoritesRepositoryProvider =
     Provider<FavoritesRepository>((ref) => sl<FavoritesRepository>());
 final locationRepositoryProvider =
     Provider<LocationRepository>((ref) => sl<LocationRepository>());
+final notificationRepositoryProvider =
+    Provider<NotificationRepository>((ref) => sl<NotificationRepository>());
+
+// --- Infrastructure ---
+final syncEngineProvider = Provider<SyncEngine>((ref) => sl<SyncEngine>());
+final connectivityServiceProvider =
+    Provider<ConnectivityService>((ref) => sl<ConnectivityService>());
 
 // --- Use cases ---
 final loginUserProvider = Provider<LoginUser>((ref) => sl<LoginUser>());

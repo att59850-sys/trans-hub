@@ -15,12 +15,18 @@ class HiveLocalDataSource {
   static const usersBox = 'users';
   static const bookingsBox = 'bookings';
   static const reviewsBox = 'reviews';
+  static const notificationsBox = 'notifications';
+  static const pendingOpsBox = 'pending_operations';
 
   late Box meta;
   late Box companies;
   late Box users;
   late Box bookings;
   late Box reviews;
+  late Box notifications;
+
+  /// Outbound mutation queue for the sync engine (TH-014).
+  late Box pendingOps;
 
   bool _ready = false;
   bool get isReady => _ready;
@@ -33,6 +39,8 @@ class HiveLocalDataSource {
     users = await Hive.openBox(usersBox);
     bookings = await Hive.openBox(bookingsBox);
     reviews = await Hive.openBox(reviewsBox);
+    notifications = await Hive.openBox(notificationsBox);
+    pendingOps = await Hive.openBox(pendingOpsBox);
     _ready = true;
   }
 
@@ -41,6 +49,8 @@ class HiveLocalDataSource {
     await users.clear();
     await bookings.clear();
     await reviews.clear();
+    await notifications.clear();
+    await pendingOps.clear();
     await meta.clear();
   }
 }

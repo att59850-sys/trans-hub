@@ -58,5 +58,26 @@ psql "$DATABASE_URL" -f migrations/0002_rls_policies.sql
 The Flutter app reads config from `--dart-define` via
 [`AppConfig`](../flutter_app/lib/core/config/app_config.dart). While no backend
 is configured (`hasRemoteBackend == false`), the app runs fully offline against
-Hive. Wiring a `SupabaseRemoteDataSource` into the repository layer
-(`data/datasources/remote/`) flips Hive to a cache role (TH-013).
+Hive and uses a `NoopRemoteDataSource`.
+
+### Offline sync (TH-013/014/015)
+
+```
+UI → repositories → HiveLocalDataSource         (local writes succeed instantly)
+                  ↘ SyncQueueRepository (pending_operations)
+                            │
+                     SyncEngine  ──push──▶  RemoteDataSource ──▶ Supabase
+                            ◀──pull──  (server wins; cache overwritten)
+```
+
+- **`RemoteDataSource`** abstracts the backend; `SupabaseRemoteDataSource`
+  (dio + PostgREST) is used when configured, else `NoopRemoteDataSource`.
+- **`SyncEngine`** drains the `pending_operations` queue (push) with retry/
+  backoff, then pulls rows changed since the last sync (`updated_at` ≥ last).
+  Conflict strategy: **server wins**.
+- **`ConnectivityService`** (connectivity_plus) triggers a sync cycle on
+  reconnect and drives the offline banner / sync indicator (`SyncStatusBar`).
+
+When you enable Supabase, set the env vars and wire each repository's writes to
+also enqueue a `PendingOperation`; the engine handles delivery. The schema's
+`updated_at` columns power incremental pulls.
