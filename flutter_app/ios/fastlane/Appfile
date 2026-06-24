@@ -1,0 +1,7 @@
+# Default Appfile values for Trans-Hub iOS (TH-025).
+# Update app_identifier to match your bundle id and Apple account.
+
+app_identifier("com.transporthub.app")
+# apple_id("you@example.com")     # not needed when using an API key
+# itc_team_id("...")
+# team_id("...")

@@ -39,6 +39,9 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # End-to-end flows on a real device/emulator (TH-022)
+  integration_test:
+    sdk: flutter
   # Quality standards (TH-003)
   flutter_lints: ^4.0.0
   # Testing (TH-020+)

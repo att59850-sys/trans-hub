@@ -1,0 +1,4 @@
+source "https://rubygems.org"
+
+# Fastlane for Android release automation (TH-025).
+gem "fastlane", "~> 2.220"

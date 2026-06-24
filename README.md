@@ -112,5 +112,8 @@ This repo is being executed against the **Trans-Hub Modernization Plan**. Status
 | 3 — Backend | TH-009 envs · TH-010 auth · TH-011 schema · TH-012 RLS | 🟡 Scaffolded (migrations + config + dio client ready) |
 | 4 — Offline sync | TH-013 cache+remote datasource ✅ · TH-014 sync engine + queue ✅ · TH-015 connectivity + banner ✅ | ✅ Done |
 | 5 — Product | TH-016 lifecycle ✅ · TH-017 verification ✅ · TH-018 notifications (domain + FCM abstraction) ✅ · TH-019 maps abstraction ✅ | 🟡 Mostly done (UI wiring pending) |
-| 6 — QA | TH-020 unit ✅ · TH-021 widget · TH-022 integration | 🟡 Partial |
-| 7 — Ops | TH-023 monitoring abstraction ✅ · TH-024 analytics abstraction ✅ · TH-025 deploy automation | 🟡 Abstractions ready |
+| 6 — QA | TH-020 unit ✅ · TH-021 widget ✅ · TH-022 integration ✅ | ✅ Done |
+| 7 — Ops | TH-023 monitoring abstraction ✅ · TH-024 analytics abstraction ✅ · TH-025 deploy automation ✅ | ✅ Done |
+
+Deployment is documented in **[DEPLOYMENT.md](DEPLOYMENT.md)** and the release
+checklist in **[DEFINITION_OF_DONE.md](DEFINITION_OF_DONE.md)**.

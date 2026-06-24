@@ -1,0 +1,188 @@
+# NOTE: copy this file to .github/workflows/deploy.yml to activate CD.
+# (It lives under ci/ because the automation token lacks GitHub "workflows" scope.)
+
+name: Deploy
+
+# TH-025 — Continuous Deployment.
+#
+# Triggers:
+#   * Pushing a semver tag (v1.2.3)  -> production release of web + Android + iOS.
+#   * Manual dispatch                -> pick a single target on demand.
+#
+# Required repository secrets (configure in Settings → Secrets → Actions):
+#   Web (Cloudflare Pages):
+#     CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, CF_PAGES_PROJECT
+#   Backend wiring (passed as --dart-define at build time):
+#     SUPABASE_URL, SUPABASE_ANON_KEY
+#   Android (Google Play, via Fastlane supply):
+#     ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS,
+#     ANDROID_KEY_PASSWORD, PLAY_SERVICE_ACCOUNT_JSON
+#   iOS (App Store, via Fastlane + App Store Connect API key):
+#     APP_STORE_CONNECT_KEY_ID, APP_STORE_CONNECT_ISSUER_ID,
+#     APP_STORE_CONNECT_KEY_BASE64, MATCH_PASSWORD
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Deployment target'
+        required: true
+        default: web
+        type: choice
+        options: [web, android, ios, all]
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    working-directory: flutter_app
+
+jobs:
+  # ---------------------------------------------------------------- Web ------
+  deploy-web:
+    name: Deploy Web (Cloudflare Pages)
+    if: >-
+      github.event_name == 'push' ||
+      contains(fromJSON('["web","all"]'), github.event.inputs.target)
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build web (release)
+        run: |
+          flutter build web --release \
+            --dart-define=SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
+            --dart-define=SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
+            --dart-define=APP_ENV=production
+
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: >-
+            pages deploy flutter_app/build/web
+            --project-name=${{ secrets.CF_PAGES_PROJECT }}
+            --branch=main
+
+  # ------------------------------------------------------------- Android -----
+  deploy-android:
+    name: Deploy Android (Play Store)
+    if: >-
+      github.event_name == 'push' ||
+      contains(fromJSON('["android","all"]'), github.event.inputs.target)
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Decode signing keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/upload-keystore.jks
+          else
+            echo "No keystore secret set; building unsigned (debug-signed) appbundle."
+          fi
+
+      - name: Build app bundle (release)
+        run: |
+          flutter build appbundle --release \
+            --dart-define=SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
+            --dart-define=SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
+            --dart-define=APP_ENV=production
+
+      - name: Set up Ruby / Fastlane
+        if: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: flutter_app/android
+
+      - name: Upload to Play (internal track)
+        if: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
+        working-directory: flutter_app/android
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          echo "$PLAY_SERVICE_ACCOUNT_JSON" > play-credentials.json
+          bundle exec fastlane deploy
+
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-appbundle
+          path: flutter_app/build/app/outputs/bundle/release/*.aab
+          if-no-files-found: error
+
+  # ----------------------------------------------------------------- iOS -----
+  deploy-ios:
+    name: Deploy iOS (App Store)
+    if: >-
+      github.event_name == 'push' ||
+      contains(fromJSON('["ios","all"]'), github.event.inputs.target)
+    runs-on: macos-14
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS (no codesign)
+        run: |
+          flutter build ios --release --no-codesign \
+            --dart-define=SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
+            --dart-define=SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
+            --dart-define=APP_ENV=production
+
+      - name: Set up Ruby / Fastlane
+        if: ${{ secrets.APP_STORE_CONNECT_KEY_ID != '' }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: flutter_app/ios
+
+      - name: Build & upload to TestFlight
+        if: ${{ secrets.APP_STORE_CONNECT_KEY_ID != '' }}
+        working-directory: flutter_app/ios
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_KEY_BASE64 }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+        run: bundle exec fastlane beta
