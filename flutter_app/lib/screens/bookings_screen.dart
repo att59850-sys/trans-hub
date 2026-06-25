@@ -73,7 +73,7 @@ class BookingsScreen extends StatelessWidget {
                                       color: AppColors.blue)),
                             ),
                           ),
-                          StatusBadge(b.status),
+                          StatusBadge(_ds.statusLabel(b.status)),
                         ]),
                         const SizedBox(height: 6),
                         Text(s?.name ?? 'Quote request',

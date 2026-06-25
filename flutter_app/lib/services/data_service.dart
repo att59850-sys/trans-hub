@@ -5,6 +5,7 @@ import '../core/di/injection.dart';
 import '../core/utils/password_hasher.dart';
 import '../data/datasources/local/hive_local_datasource.dart';
 import '../domain/entities/booking_status.dart' as dom;
+import '../domain/repositories/repositories.dart' as dom_repo;
 import '../models/models.dart';
 import 'seed_data.dart';
 
@@ -205,7 +206,18 @@ class DataService extends ChangeNotifier {
 
   // ---------- bookings ----------
   Booking createBooking(Booking b) {
-    _bookingsBox.put(b.id, b.toJson());
+    // Persist the UI model, then seed the lifecycle history with an initial
+    // "Booking created" event (TH-016) by merging the events key into the
+    // stored JSON without coupling the legacy UI model to the event type.
+    final json = b.toJson()
+      ..['events'] = [
+        {
+          'status': b.status,
+          'at': DateTime.now().millisecondsSinceEpoch,
+          'note': 'Booking created',
+        }
+      ];
+    _bookingsBox.put(b.id, json);
     notifyListeners();
     return b;
   }
@@ -220,11 +232,25 @@ class DataService extends ChangeNotifier {
   List<String> get bookingStatuses =>
       dom.BookingStatus.values.map((s) => s.wire).toList();
 
-  void setBookingStatus(String id, String status) {
-    final j = _bookingsBox.get(id);
-    if (j == null) return;
-    final b = Booking.fromJson(j as Map)..status = status;
-    _bookingsBox.put(id, b.toJson());
+  /// Human-friendly label for a wire status, e.g. `in_transit` → "In transit".
+  String statusLabel(String wire) => dom.bookingStatusFromWire(wire).label;
+
+  /// Valid next transitions (as wire values) from the given status (TH-016).
+  /// Drives the dashboard's status controls so providers can only move a
+  /// booking along legal lifecycle edges.
+  List<String> nextStatuses(String wire) =>
+      dom.bookingStatusFromWire(wire).nextStates.map((s) => s.wire).toList();
+
+  /// Whether a status is terminal (completed/cancelled) — no further actions.
+  bool isTerminalStatus(String wire) =>
+      dom.bookingStatusFromWire(wire).isTerminal;
+
+  void setBookingStatus(String id, String status, {String note = ''}) {
+    // Route through the domain repository so the transition is appended to the
+    // booking's event history (TH-016) and preserved in the cache, rather than
+    // overwriting the record with the event-less UI model.
+    sl<dom_repo.BookingRepository>()
+        .setStatus(id, dom.bookingStatusFromWire(status), note: note);
     notifyListeners();
   }
 

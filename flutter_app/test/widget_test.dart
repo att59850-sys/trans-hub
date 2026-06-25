@@ -110,5 +110,10 @@ void main() {
       await pump(tester, const StatusBadge('quoteRequested'));
       expect(find.text('quoteRequested'), findsOneWidget);
     });
+
+    testWidgets('renders a human lifecycle label', (tester) async {
+      await pump(tester, const StatusBadge('In transit'));
+      expect(find.text('In transit'), findsOneWidget);
+    });
   });
 }

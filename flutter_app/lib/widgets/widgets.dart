@@ -317,13 +317,24 @@ class StatusBadge extends StatelessWidget {
   const StatusBadge(this.status, {super.key});
   @override
   Widget build(BuildContext context) {
+    const warnBg = Color(0xFFFFF4E0);
+    const okBg = Color(0xFFE3F7EE);
+    const dangerBg = Color(0xFFFDECEB);
+    // Keyed by a normalized form so both wire values ("in_transit") and
+    // human labels ("In transit") resolve to the same colors (TH-016).
     final map = {
-      'pending': [const Color(0xFFFFF4E0), AppColors.warn],
-      'confirmed': [const Color(0xFFE3F7EE), AppColors.ok],
-      'completed': [AppColors.blue50, AppColors.blue],
-      'cancelled': [const Color(0xFFFDECEB), AppColors.danger],
+      'draft': [AppColors.bg, AppColors.muted],
+      'quoterequested': [warnBg, AppColors.warn],
+      'quotesent': [warnBg, AppColors.warn],
+      'pending': [warnBg, AppColors.warn],
+      'confirmed': [okBg, AppColors.ok],
+      'accepted': [okBg, AppColors.ok],
+      'intransit': [AppColors.blue50, AppColors.blue],
+      'completed': [okBg, AppColors.ok],
+      'cancelled': [dangerBg, AppColors.danger],
     };
-    final c = map[status] ?? [AppColors.blue50, AppColors.blue];
+    final key = status.toLowerCase().replaceAll(RegExp(r'[\s_]'), '');
+    final c = map[key] ?? [AppColors.blue50, AppColors.blue];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration:

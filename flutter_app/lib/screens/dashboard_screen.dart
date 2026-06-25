@@ -213,7 +213,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               child: Text(b.contactName.isEmpty ? '—' : b.contactName,
                   style: const TextStyle(
                       fontWeight: FontWeight.w700, fontSize: 15))),
-          StatusBadge(b.status),
+          StatusBadge(_ds.statusLabel(b.status)),
         ]),
         Text(b.contactEmail,
             style: const TextStyle(color: AppColors.muted, fontSize: 12.5)),
@@ -243,19 +243,30 @@ class _DashboardScreenState extends State<DashboardScreen>
         ],
         if (withActions) ...[
           const SizedBox(height: 10),
-          Wrap(spacing: 8, children: [
-            for (final st in ['pending', 'confirmed', 'completed', 'cancelled'])
-              ChoiceChip(
-                label: Text(st, style: const TextStyle(fontSize: 12)),
-                selected: b.status == st,
-                showCheckmark: false,
-                selectedColor: AppColors.blue50,
-                onSelected: (_) {
-                  _ds.setBookingStatus(b.id, st);
-                  showToast(context, 'Booking $st');
-                },
+          if (_ds.isTerminalStatus(b.status))
+            Text('This booking is ${_ds.statusLabel(b.status).toLowerCase()}.',
+                style: const TextStyle(color: AppColors.muted, fontSize: 12.5))
+          else
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 6, right: 2),
+                child: Text('Move to:',
+                    style: TextStyle(
+                        color: AppColors.muted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600)),
               ),
-          ]),
+              for (final next in _ds.nextStatuses(b.status))
+                ActionChip(
+                  label: Text(_ds.statusLabel(next),
+                      style: const TextStyle(fontSize: 12)),
+                  backgroundColor: AppColors.blue50,
+                  onPressed: () {
+                    _ds.setBookingStatus(b.id, next);
+                    showToast(context, 'Booking → ${_ds.statusLabel(next)}');
+                  },
+                ),
+            ]),
         ],
       ]),
     );
