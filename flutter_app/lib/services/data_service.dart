@@ -4,7 +4,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../core/di/injection.dart';
 import '../core/utils/password_hasher.dart';
 import '../data/datasources/local/hive_local_datasource.dart';
+import '../domain/entities/app_notification.dart';
 import '../domain/entities/booking_status.dart' as dom;
+import '../domain/repositories/notification_repository.dart';
 import '../domain/repositories/repositories.dart' as dom_repo;
 import '../models/models.dart';
 import 'seed_data.dart';
@@ -218,6 +220,19 @@ class DataService extends ChangeNotifier {
         }
       ];
     _bookingsBox.put(b.id, json);
+
+    // Notify the provider that owns the company of the new request (TH-018).
+    final c = company(b.companyId);
+    if (c != null && c.ownerId.isNotEmpty) {
+      addNotification(AppNotification(
+        userId: c.ownerId,
+        title: 'New booking request',
+        body: b.contactName.isEmpty
+            ? 'You have a new booking request.'
+            : '${b.contactName} requested a booking.',
+        kind: NotificationKind.bookingUpdate,
+      ));
+    }
     notifyListeners();
     return b;
   }
@@ -251,6 +266,54 @@ class DataService extends ChangeNotifier {
     // overwriting the record with the event-less UI model.
     sl<dom_repo.BookingRepository>()
         .setStatus(id, dom.bookingStatusFromWire(status), note: note);
+
+    // Notify the customer who placed the booking (TH-018).
+    final j = _bookingsBox.get(id);
+    if (j != null) {
+      final b = Booking.fromJson(j as Map);
+      if (b.userId != null && b.userId!.isNotEmpty) {
+        addNotification(AppNotification(
+          userId: b.userId!,
+          title: 'Booking ${statusLabel(status).toLowerCase()}',
+          body: note.isNotEmpty
+              ? note
+              : 'Your booking is now "${statusLabel(status)}".',
+          kind: NotificationKind.bookingUpdate,
+        ));
+      }
+    }
+    notifyListeners();
+  }
+
+  // ---------- notifications (TH-018) ----------
+  NotificationRepository get _notifications => sl<NotificationRepository>();
+
+  /// Notifications for the signed-in user, newest first.
+  List<AppNotification> get notifications {
+    final u = currentUser;
+    return u == null ? const [] : _notifications.forUser(u.id);
+  }
+
+  /// Unread count for the signed-in user (drives the app-bar badge).
+  int get unreadNotifications {
+    final u = currentUser;
+    return u == null ? 0 : _notifications.unreadCount(u.id);
+  }
+
+  void addNotification(AppNotification n) {
+    _notifications.add(n);
+    notifyListeners();
+  }
+
+  void markNotificationRead(String id) {
+    _notifications.markRead(id);
+    notifyListeners();
+  }
+
+  void markAllNotificationsRead() {
+    final u = currentUser;
+    if (u == null) return;
+    _notifications.markAllRead(u.id);
     notifyListeners();
   }
 

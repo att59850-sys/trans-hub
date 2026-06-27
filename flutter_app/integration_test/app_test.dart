@@ -10,6 +10,7 @@ import 'package:transport_hub/data/repositories/auth_repository_impl.dart';
 import 'package:transport_hub/data/repositories/booking_repository_impl.dart';
 import 'package:transport_hub/data/repositories/company_repository_impl.dart';
 import 'package:transport_hub/data/repositories/favorites_repository_impl.dart';
+import 'package:transport_hub/data/repositories/notification_repository_impl.dart';
 import 'package:transport_hub/data/repositories/review_repository_impl.dart';
 import 'package:transport_hub/domain/entities/entities.dart';
 import 'package:transport_hub/domain/usecases/usecases.dart';
@@ -34,6 +35,7 @@ void main() {
   late BookingRepositoryImpl bookings;
   late ReviewRepositoryImpl reviews;
   late FavoritesRepositoryImpl favorites;
+  late NotificationRepositoryImpl notifications;
 
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('transhub_it_');
@@ -55,6 +57,7 @@ void main() {
     bookings = BookingRepositoryImpl(ds);
     reviews = ReviewRepositoryImpl(ds);
     favorites = FavoritesRepositoryImpl(ds);
+    notifications = NotificationRepositoryImpl(ds);
   });
 
   tearDown(() async {
@@ -265,6 +268,31 @@ void main() {
       expect(favorites.isFavorite('c1'), isTrue);
       expect(toggle('c1'), isFalse);
       expect(favorites.isFavorite('c1'), isFalse);
+    });
+  });
+
+  group('Notifications', () {
+    test('delivers per-user and tracks unread / read state', () {
+      notifications.add(AppNotification(
+        userId: 'u1',
+        title: 'Booking accepted',
+        kind: NotificationKind.bookingUpdate,
+      ));
+      notifications.add(AppNotification(userId: 'u1', title: 'Quote sent'));
+      notifications.add(AppNotification(userId: 'u2', title: 'Other user'));
+
+      expect(notifications.forUser('u1'), hasLength(2));
+      expect(notifications.unreadCount('u1'), 2);
+      expect(notifications.forUser('u2'), hasLength(1));
+
+      final first = notifications.forUser('u1').first;
+      notifications.markRead(first.id);
+      expect(notifications.unreadCount('u1'), 1);
+
+      notifications.markAllRead('u1');
+      expect(notifications.unreadCount('u1'), 0);
+      // u2 is unaffected.
+      expect(notifications.unreadCount('u2'), 1);
     });
   });
 }

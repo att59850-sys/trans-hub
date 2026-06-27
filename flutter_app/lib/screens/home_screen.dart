@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../widgets/widgets.dart';
 import 'shell.dart';
 import 'account_screen.dart';
+import 'notifications_screen.dart';
 
 final _ds = DataService.instance;
 
@@ -30,6 +31,7 @@ class HomeScreen extends StatelessWidget {
               style: const TextStyle(
                   color: AppColors.ink2, fontWeight: FontWeight.w600)),
         ),
+        if (_ds.currentUser != null) const NotificationBell(),
         const SizedBox(width: 6),
       ]),
       body: ListView(
