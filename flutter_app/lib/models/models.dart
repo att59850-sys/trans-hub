@@ -72,6 +72,10 @@ class Company {
   int fleetSize;
   int yearsActive;
   bool verified;
+
+  /// Provider verification workflow (TH-017):
+  /// unverified | submitted | under_review | approved | rejected
+  String verificationStatus;
   List<TransportService> services;
   int createdAt;
 
@@ -87,9 +91,12 @@ class Company {
     this.fleetSize = 1,
     this.yearsActive = 0,
     this.verified = false,
+    String? verificationStatus,
     List<TransportService>? services,
     int? createdAt,
-  })  : coverage = coverage ?? ['Local'],
+  })  : verificationStatus =
+            verificationStatus ?? (verified ? 'approved' : 'unverified'),
+        coverage = coverage ?? ['Local'],
         services = services ?? [],
         id = id ?? newId('c'),
         createdAt = createdAt ?? DateTime.now().millisecondsSinceEpoch;
@@ -106,6 +113,7 @@ class Company {
         'fleetSize': fleetSize,
         'yearsActive': yearsActive,
         'verified': verified,
+        'verificationStatus': verificationStatus,
         'services': services.map((s) => s.toJson()).toList(),
         'createdAt': createdAt,
       };
@@ -132,6 +140,7 @@ class Company {
         fleetSize: j['fleetSize'] ?? 1,
         yearsActive: j['yearsActive'] ?? 0,
         verified: j['verified'] ?? false,
+        verificationStatus: j['verificationStatus'] as String?,
         services: (j['services'] as List?)
                 ?.map((e) => TransportService.fromJson(e as Map))
                 .toList() ??

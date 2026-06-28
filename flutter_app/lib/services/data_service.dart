@@ -183,6 +183,51 @@ class DataService extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ---------- provider verification (TH-017) ----------
+
+  /// Human-friendly label for a verification status.
+  String verificationLabel(String status) => switch (status) {
+        'submitted' => 'Submitted',
+        'under_review' => 'Under review',
+        'approved' => 'Verified',
+        'rejected' => 'Rejected',
+        _ => 'Unverified',
+      };
+
+  /// Provider submits their company for verification (unverified/rejected →
+  /// submitted). Notifies the owner that the request was received (TH-018).
+  void submitForVerification(String companyId) {
+    final c = company(companyId);
+    if (c == null) return;
+    c.verificationStatus = 'submitted';
+    updateCompany(c);
+    addNotification(AppNotification(
+      userId: c.ownerId,
+      title: 'Verification submitted',
+      body: 'Your verification request for ${c.name} is now in the queue.',
+      kind: NotificationKind.system,
+    ));
+  }
+
+  /// Transitions a company's verification status (e.g. admin review action).
+  /// Keeps the legacy [Company.verified] boolean in sync and notifies the
+  /// owner of the outcome.
+  void setVerificationStatus(String companyId, String status) {
+    final c = company(companyId);
+    if (c == null) return;
+    c.verificationStatus = status;
+    c.verified = status == 'approved';
+    updateCompany(c);
+    addNotification(AppNotification(
+      userId: c.ownerId,
+      title: 'Verification ${verificationLabel(status).toLowerCase()}',
+      body: status == 'approved'
+          ? '${c.name} is now a verified provider.'
+          : 'Verification status for ${c.name}: ${verificationLabel(status)}.',
+      kind: NotificationKind.system,
+    ));
+  }
+
   // ---------- services ----------
   void addService(String companyId, TransportService s) {
     final c = company(companyId);

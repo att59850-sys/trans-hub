@@ -80,6 +80,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       [Icons.star, r.avg > 0 ? '${r.avg}' : '—', '${r.count} reviews'],
     ];
     return ListView(padding: const EdgeInsets.all(16), children: [
+      _verificationPanel(c),
       GridView.count(
         crossAxisCount: 2,
         shrinkWrap: true,
@@ -118,6 +119,59 @@ class _DashboardScreenState extends State<DashboardScreen>
       else
         ...bookings.take(5).map((b) => _bookingTile(context, c, b, false)),
     ]);
+  }
+
+  /// Provider verification status + action (TH-017).
+  Widget _verificationPanel(Company c) {
+    final status = c.verificationStatus;
+    final approved = status == 'approved';
+    final pending = status == 'submitted' || status == 'under_review';
+    final (Color bg, Color fg, IconData icon) = approved
+        ? (const Color(0xFFE3F7EE), AppColors.ok, Icons.verified)
+        : pending
+            ? (const Color(0xFFFFF4E0), AppColors.warn, Icons.hourglass_top)
+            : (AppColors.blue50, AppColors.blue, Icons.shield_outlined);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(children: [
+        Icon(icon, color: fg),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(_ds.verificationLabel(status),
+                  style: TextStyle(
+                      color: fg, fontWeight: FontWeight.w800, fontSize: 15)),
+              const SizedBox(height: 2),
+              Text(
+                approved
+                    ? 'Your company is verified and shows a badge to customers.'
+                    : pending
+                        ? 'Your verification request is being reviewed.'
+                        : 'Get a verified badge to build customer trust.',
+                style: const TextStyle(color: AppColors.ink2, fontSize: 12.5),
+              ),
+            ],
+          ),
+        ),
+        if (!approved && !pending)
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.blue),
+            onPressed: () {
+              _ds.submitForVerification(c.id);
+              showToast(context, 'Submitted for verification');
+            },
+            child: const Text('Submit'),
+          ),
+      ]),
+    );
   }
 
   Widget _services(BuildContext context, Company c) {
