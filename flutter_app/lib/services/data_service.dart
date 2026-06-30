@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../core/config/app_config.dart';
 import '../core/di/injection.dart';
 import '../core/utils/password_hasher.dart';
 import '../data/datasources/local/hive_local_datasource.dart';
@@ -208,6 +209,17 @@ class DataService extends ChangeNotifier {
       kind: NotificationKind.system,
     ));
   }
+
+  /// Whether the signed-in user is an administrator (config-driven, TH-017).
+  bool get isAdmin => sl<AppConfig>().isAdmin(currentUser?.email);
+
+  /// Companies awaiting an admin decision, oldest first (review queue).
+  List<Company> get companiesForReview => companies
+      .where((c) =>
+          c.verificationStatus == 'submitted' ||
+          c.verificationStatus == 'under_review')
+      .toList()
+    ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
   /// Transitions a company's verification status (e.g. admin review action).
   /// Keeps the legacy [Company.verified] boolean in sync and notifies the

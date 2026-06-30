@@ -3,6 +3,7 @@ import '../services/data_service.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/widgets.dart';
+import 'admin_review_screen.dart';
 import 'shell.dart';
 
 final _ds = DataService.instance;
@@ -66,6 +67,36 @@ class AccountScreen extends StatelessWidget {
             _ds.location.isEmpty ? 'Not set' : _ds.location),
         _tile(
             Icons.favorite, 'Saved providers', '${_ds.favorites.length} saved'),
+        if (_ds.isAdmin) ...[
+          const SizedBox(height: 6),
+          InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                  builder: (_) => const AdminReviewScreen()),
+            ),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.blue50,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(children: [
+                const Icon(Icons.verified_user, color: AppColors.blue),
+                const SizedBox(width: 12),
+                const Text('Verification queue',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w700, color: AppColors.blue)),
+                const Spacer(),
+                Text('${_ds.companiesForReview.length} pending',
+                    style: const TextStyle(
+                        color: AppColors.blue, fontWeight: FontWeight.w600)),
+                const Icon(Icons.chevron_right, color: AppColors.blue),
+              ]),
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         OutlinedButton.icon(
           onPressed: () async {

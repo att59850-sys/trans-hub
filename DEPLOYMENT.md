@@ -35,6 +35,7 @@ Configure under **Settings → Secrets and variables → Actions**.
 |--------|---------|
 | `SUPABASE_URL` | Supabase project REST URL |
 | `SUPABASE_ANON_KEY` | Supabase anon/public key |
+| `ADMIN_EMAILS` | comma-separated emails granted the in-app verification review queue (TH-017) |
 
 ### Web — Cloudflare Pages
 | Secret | Purpose |

@@ -111,7 +111,7 @@ This repo is being executed against the **Trans-Hub Modernization Plan**. Status
 | 2 — Architecture | TH-005 Riverpod · TH-006 repositories · TH-007 use cases · TH-008 DI | ✅ Done |
 | 3 — Backend | TH-009 envs · TH-010 auth · TH-011 schema · TH-012 RLS | 🟡 Scaffolded (migrations + config + dio client ready) |
 | 4 — Offline sync | TH-013 cache+remote datasource ✅ · TH-014 sync engine + queue ✅ · TH-015 connectivity + banner ✅ | ✅ Done |
-| 5 — Product | TH-016 lifecycle ✅ (wired into dashboard) · TH-017 verification ✅ (5-state workflow + dashboard panel) · TH-018 notifications ✅ (in-app inbox + bell badge) · TH-019 maps abstraction ✅ | ✅ Done |
+| 5 — Product | TH-016 lifecycle ✅ (wired into dashboard) · TH-017 verification ✅ (5-state workflow + dashboard panel + admin review queue) · TH-018 notifications ✅ (in-app inbox + bell badge) · TH-019 maps abstraction ✅ | ✅ Done |
 | 6 — QA | TH-020 unit ✅ · TH-021 widget ✅ · TH-022 integration ✅ | ✅ Done |
 | 7 — Ops | TH-023 monitoring abstraction ✅ · TH-024 analytics abstraction ✅ · TH-025 deploy automation ✅ | ✅ Done |
 
