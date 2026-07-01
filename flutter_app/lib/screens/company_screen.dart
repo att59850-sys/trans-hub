@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/maps/maps_service.dart';
 import '../services/data_service.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
@@ -355,14 +356,17 @@ void openBookingSheet(
               Expanded(
                   child: TextField(
                       controller: pickup,
+                      onChanged: (_) => setSt(() {}),
                       decoration: const InputDecoration(labelText: 'Pickup'))),
               const SizedBox(width: 10),
               Expanded(
                   child: TextField(
                       controller: dropoff,
+                      onChanged: (_) => setSt(() {}),
                       decoration:
                           const InputDecoration(labelText: 'Drop-off'))),
             ]),
+            _RoutePreviewStrip(pickup: pickup.text, dropoff: dropoff.text),
             const SizedBox(height: 12),
             TextField(
               controller: date,
@@ -448,4 +452,81 @@ void openBookingSheet(
       ),
     ),
   );
+}
+
+/// Live route estimate shown in the booking sheet between the pickup and
+/// drop-off fields (TH-019). Renders nothing until both are filled; shows a
+/// distance + estimated duration once resolvable.
+class _RoutePreviewStrip extends StatefulWidget {
+  const _RoutePreviewStrip({required this.pickup, required this.dropoff});
+  final String pickup;
+  final String dropoff;
+
+  @override
+  State<_RoutePreviewStrip> createState() => _RoutePreviewStripState();
+}
+
+class _RoutePreviewStripState extends State<_RoutePreviewStrip> {
+  Future<RoutePreview?>? _future;
+
+  @override
+  void didUpdateWidget(covariant _RoutePreviewStrip old) {
+    super.didUpdateWidget(old);
+    if (old.pickup != widget.pickup || old.dropoff != widget.dropoff) {
+      _refresh();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _refresh();
+  }
+
+  void _refresh() {
+    _future = _ds.estimateRoute(widget.pickup, widget.dropoff);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.pickup.trim().isEmpty || widget.dropoff.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return FutureBuilder<RoutePreview?>(
+      future: _future,
+      builder: (context, snap) {
+        final r = snap.data;
+        if (r == null) return const SizedBox.shrink();
+        final h = r.durationMinutes ~/ 60;
+        final m = r.durationMinutes % 60;
+        final eta = h > 0 ? '${h}h ${m}m' : '${m}m';
+        return Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.blue50,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(children: [
+              const Icon(Icons.route, size: 18, color: AppColors.blue),
+              const SizedBox(width: 8),
+              Text('~${r.distanceKm} km',
+                  style: const TextStyle(
+                      color: AppColors.blue, fontWeight: FontWeight.w700)),
+              const SizedBox(width: 12),
+              const Icon(Icons.schedule, size: 16, color: AppColors.blue),
+              const SizedBox(width: 4),
+              Text('~$eta',
+                  style: const TextStyle(
+                      color: AppColors.blue, fontWeight: FontWeight.w700)),
+              const Spacer(),
+              const Text('estimate',
+                  style: TextStyle(color: AppColors.muted, fontSize: 11.5)),
+            ]),
+          ),
+        );
+      },
+    );
+  }
 }

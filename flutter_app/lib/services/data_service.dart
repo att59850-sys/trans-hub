@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../core/config/app_config.dart';
 import '../core/di/injection.dart';
+import '../core/maps/maps_service.dart';
 import '../core/utils/password_hasher.dart';
 import '../data/datasources/local/hive_local_datasource.dart';
 import '../domain/entities/app_notification.dart';
@@ -182,6 +183,20 @@ class DataService extends ChangeNotifier {
   void updateCompany(Company c) {
     _companiesBox.put(c.id, c.toJson());
     notifyListeners();
+  }
+
+  // ---------- maps / routing (TH-019) ----------
+
+  /// Estimates a route between two free-text locations, or null if either is
+  /// empty or can't be resolved. Backed by the [MapsService] abstraction
+  /// (offline estimator by default; swappable for Google/Mapbox).
+  Future<RoutePreview?> estimateRoute(String pickup, String dropoff) async {
+    if (pickup.trim().isEmpty || dropoff.trim().isEmpty) return null;
+    final maps = sl<MapsService>();
+    final from = await maps.geocode(pickup);
+    final to = await maps.geocode(dropoff);
+    if (from == null || to == null) return null;
+    return maps.routePreview(from, to);
   }
 
   // ---------- provider verification (TH-017) ----------

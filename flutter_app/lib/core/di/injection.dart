@@ -17,6 +17,7 @@ import '../../domain/repositories/repositories.dart';
 import '../../domain/repositories/sync_queue_repository.dart';
 import '../../domain/usecases/usecases.dart';
 import '../config/app_config.dart';
+import '../maps/estimating_maps_service.dart';
 import '../maps/maps_service.dart';
 import '../messaging/push_messaging.dart';
 import '../network/connectivity_service.dart';
@@ -46,9 +47,12 @@ void configureDependencies(HiveLocalDataSource ds) {
   sl.registerSingleton<CrashReporter>(const NoopCrashReporter());
   sl.registerSingleton<AnalyticsService>(const NoopAnalyticsService());
 
-  // Messaging (TH-018) & Maps (TH-019) — no-op until configured.
+  // Messaging (TH-018) — no-op until configured.
   sl.registerSingleton<PushMessaging>(const NoopPushMessaging());
-  sl.registerSingleton<MapsService>(const NoopMapsService());
+
+  // Maps (TH-019). Uses a credential-free estimator so route previews work
+  // offline; swap for a Google/Mapbox-backed MapsService in production.
+  sl.registerSingleton<MapsService>(const EstimatingMapsService());
 
   // Repositories (TH-006)
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl()));
