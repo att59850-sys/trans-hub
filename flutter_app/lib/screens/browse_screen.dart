@@ -76,6 +76,12 @@ class _BrowseScreenState extends State<BrowseScreen> {
           child: TextField(
             controller: _searchCtrl,
             onChanged: (v) => setState(() => _query = v),
+            textInputAction: TextInputAction.search,
+            // Log on submit rather than per keystroke to avoid noise (TH-024).
+            onSubmitted: (v) {
+              if (v.trim().isNotEmpty)
+                _ds.trackSearch(v.trim(), category: _cat);
+            },
             decoration: InputDecoration(
               hintText: 'Search companies, services, routes…',
               prefixIcon: const Icon(Icons.search),

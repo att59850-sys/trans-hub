@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../core/config/app_config.dart';
 import '../core/di/injection.dart';
 import '../core/maps/maps_service.dart';
+import '../core/telemetry/analytics.dart';
 import '../core/utils/password_hasher.dart';
 import '../data/datasources/local/hive_local_datasource.dart';
 import '../domain/entities/app_notification.dart';
@@ -68,6 +69,31 @@ class DataService extends ChangeNotifier {
       await _reviewsBox.put(r.id, r.toJson());
     }
   }
+
+  // ---------- analytics (TH-024) ----------
+  // Central instrumentation point. Events go to the AnalyticsService
+  // abstraction (Noop by default; a real provider just works once wired).
+  AnalyticsService get _analytics => sl<AnalyticsService>();
+
+  void _track(AnalyticsEvent event, {Map<String, Object?> params = const {}}) {
+    _analytics.logEvent(event, params: params);
+  }
+
+  /// Records that the app was opened and attributes the current session.
+  void trackAppOpened() {
+    _analytics.setUser(currentUser?.id);
+    _track(AnalyticsEvent.appOpened);
+  }
+
+  /// Records that a company profile was viewed.
+  void trackCompanyViewed(String companyId) =>
+      _track(AnalyticsEvent.companyViewed, params: {'company_id': companyId});
+
+  /// Records that a search was performed.
+  void trackSearch(String query, {String? category}) => _track(
+        AnalyticsEvent.searchPerformed,
+        params: {'q': query, if (category != null) 'category': category},
+      );
 
   Future<void> resetAll() async {
     await _local.clearAll();
@@ -154,6 +180,8 @@ class DataService extends ChangeNotifier {
     }
     _usersBox.put(user.id, user.toJson());
     _box.put('session', user.id);
+    _analytics.setUser(user.id);
+    _track(AnalyticsEvent.signUp, params: {'role': roleToString(role)});
     notifyListeners();
     return user;
   }
@@ -167,6 +195,8 @@ class DataService extends ChangeNotifier {
           _usersBox.put(u.id, u.toJson());
         }
         _box.put('session', u.id);
+        _analytics.setUser(u.id);
+        _track(AnalyticsEvent.login);
         notifyListeners();
         return u;
       }
@@ -175,6 +205,8 @@ class DataService extends ChangeNotifier {
   }
 
   void logout() {
+    _track(AnalyticsEvent.logout);
+    _analytics.setUser(null);
     _box.delete('session');
     notifyListeners();
   }
@@ -261,6 +293,7 @@ class DataService extends ChangeNotifier {
     if (c == null) return;
     c.services.add(s);
     updateCompany(c);
+    _track(AnalyticsEvent.serviceCreated, params: {'company_id': companyId});
   }
 
   void updateService(String companyId, TransportService s) {
@@ -292,6 +325,18 @@ class DataService extends ChangeNotifier {
         }
       ];
     _bookingsBox.put(b.id, json);
+
+    // A request tied to a concrete service is a booking; one without is a
+    // quote request (TH-024).
+    _track(
+      b.serviceId == null
+          ? AnalyticsEvent.quoteRequested
+          : AnalyticsEvent.bookingCreated,
+      params: {
+        'company_id': b.companyId,
+        if (b.serviceId != null) 'service_id': b.serviceId,
+      },
+    );
 
     // Notify the provider that owns the company of the new request (TH-018).
     final c = company(b.companyId);
@@ -338,6 +383,11 @@ class DataService extends ChangeNotifier {
     // overwriting the record with the event-less UI model.
     sl<dom_repo.BookingRepository>()
         .setStatus(id, dom.bookingStatusFromWire(status), note: note);
+
+    _track(
+      AnalyticsEvent.bookingStatusChanged,
+      params: {'booking_id': id, 'status': status},
+    );
 
     // Notify the customer who placed the booking (TH-018).
     final j = _bookingsBox.get(id);
@@ -392,6 +442,10 @@ class DataService extends ChangeNotifier {
   // ---------- reviews ----------
   void addReview(Review r) {
     _reviewsBox.put(r.id, r.toJson());
+    _track(
+      AnalyticsEvent.reviewSubmitted,
+      params: {'company_id': r.companyId, 'rating': r.rating},
+    );
     notifyListeners();
   }
 
@@ -409,8 +463,13 @@ class DataService extends ChangeNotifier {
       favs.add(companyId);
     }
     _box.put('favorites', favs);
+    final nowFav = favs.contains(companyId);
+    _track(
+      AnalyticsEvent.favoriteToggled,
+      params: {'company_id': companyId, 'favorited': nowFav},
+    );
     notifyListeners();
-    return favs.contains(companyId);
+    return nowFav;
   }
 
   // ---------- location ----------

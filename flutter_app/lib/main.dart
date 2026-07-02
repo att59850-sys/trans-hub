@@ -21,6 +21,10 @@ Future<void> main() async {
   await sl<ConnectivityService>().start();
   unawaited(sl<SyncEngine>().sync());
 
+  // Record the app-open event (TH-024); binds the current user if a session
+  // was restored during init.
+  DataService.instance.trackAppOpened();
+
   // ProviderScope activates Riverpod for the new presentation layer (TH-005).
   runApp(const ProviderScope(child: TransportHubApp()));
 }

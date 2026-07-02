@@ -7,12 +7,25 @@ import '../widgets/widgets.dart';
 
 final _ds = DataService.instance;
 
-class CompanyScreen extends StatelessWidget {
+class CompanyScreen extends StatefulWidget {
   final String companyId;
   const CompanyScreen({required this.companyId, super.key});
 
   @override
+  State<CompanyScreen> createState() => _CompanyScreenState();
+}
+
+class _CompanyScreenState extends State<CompanyScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Fire once per screen view rather than on every rebuild (TH-024).
+    _ds.trackCompanyViewed(widget.companyId);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final companyId = widget.companyId;
     return AnimatedBuilder(
       animation: _ds,
       builder: (context, _) {
