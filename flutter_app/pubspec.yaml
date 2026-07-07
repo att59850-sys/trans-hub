@@ -1,0 +1,54 @@
+name: transport_hub
+description: "Trans-Hub — a trusted transport & logistics marketplace (offline-first, sync-ready)."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # State management (TH-005)
+  flutter_riverpod: ^2.5.1
+
+  # Dependency injection (TH-008)
+  get_it: ^8.0.0
+
+  # Secure storage for tokens (TH-010 / P2)
+  flutter_secure_storage: ^9.2.2
+
+  # Offline cache (TH-013)
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Networking (TH-009 — remote datasource)
+  dio: ^5.7.0
+
+  # Connectivity awareness (TH-015)
+  connectivity_plus: ^6.0.5
+
+  # Misc
+  crypto: ^3.0.5
+  intl: ^0.19.0
+  uuid: ^4.5.1
+  google_fonts: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  # End-to-end flows on a real device/emulator (TH-022)
+  integration_test:
+    sdk: flutter
+  # Quality standards (TH-003)
+  flutter_lints: ^4.0.0
+  # Testing (TH-020+)
+  mocktail: ^1.0.4
+  # Code generation
+  hive_generator: ^2.0.1
+  build_runner: ^2.4.13
+
+flutter:
+  uses-material-design: true

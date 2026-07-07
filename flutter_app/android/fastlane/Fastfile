@@ -1,0 +1,46 @@
+# Fastlane configuration for Trans-Hub Android (TH-025).
+#
+# Prerequisites:
+#   * flutter build appbundle --release  (produces build/app/outputs/bundle/release/app-release.aab)
+#   * A Google Play service-account JSON with the "Release Manager" role,
+#     provided to CI as play-credentials.json (see ci/deploy.yml).
+#
+# Run locally:  bundle exec fastlane deploy
+
+default_platform(:android)
+
+# Path to the Flutter-produced app bundle (android/ is the working dir).
+AAB_PATH = "../build/app/outputs/bundle/release/app-release.aab".freeze
+
+platform :android do
+  desc "Build the release app bundle via Flutter"
+  lane :build do
+    sh("cd .. && flutter build appbundle --release")
+  end
+
+  desc "Upload the existing app bundle to the Play internal track"
+  lane :deploy do
+    upload_to_play_store(
+      track: "internal",
+      aab: AAB_PATH,
+      json_key: "play-credentials.json",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      release_status: "draft"
+    )
+  end
+
+  desc "Promote the latest internal build to production"
+  lane :promote do
+    upload_to_play_store(
+      track: "internal",
+      track_promote_to: "production",
+      json_key: "play-credentials.json",
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+end

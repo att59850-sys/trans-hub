@@ -1,0 +1,5 @@
+# Default Appfile values for Trans-Hub Android (TH-025).
+# Override the package name to match your release applicationId.
+
+json_key_file("play-credentials.json")
+package_name("com.transporthub.app")
