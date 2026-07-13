@@ -35,6 +35,25 @@ void main() {
       expect(first.lat, inInclusiveRange(-70, 70));
       expect(first.lng, inInclusiveRange(-180, 180));
     });
+
+    // Regression (found via the human-journey simulation): common cities like
+    // Boston were missing from the seed table and fell through to the hash
+    // fallback, producing absurd route distances (e.g. NY->Boston ~8800 km).
+    test('resolves Boston to real-ish coordinates (regression)', () async {
+      final b = await maps.geocode('Boston');
+      expect(b, isNotNull);
+      expect(b!.lat, closeTo(42.36, 0.5));
+      expect(b.lng, closeTo(-71.06, 0.5));
+    });
+
+    // Regression: multi-word queries must pick the longest matching city name,
+    // not whichever key iterates first.
+    test('prefers the most specific city match', () async {
+      final ny = await maps.geocode('New York');
+      final nyc = await maps.geocode('New York City, NY');
+      expect(nyc!.lat, ny!.lat);
+      expect(nyc.lng, ny.lng);
+    });
   });
 
   group('routePreview', () {
