@@ -6,6 +6,7 @@ import '../core/di/injection.dart';
 import '../core/maps/maps_service.dart';
 import '../core/telemetry/analytics.dart';
 import '../core/utils/password_hasher.dart';
+import '../core/utils/validators.dart';
 import '../data/datasources/local/hive_local_datasource.dart';
 import '../domain/entities/app_notification.dart';
 import '../domain/entities/booking_status.dart' as dom;
@@ -154,6 +155,16 @@ class DataService extends ChangeNotifier {
     required UserRole role,
     String? companyName,
   }) {
+    // Validate input through the shared rules so the facade and the Clean
+    // Architecture auth repository cannot disagree (a QA pass found the facade
+    // accepting empty emails and 1-char passwords the repository rejected).
+    final err = Validators.signupError(
+      name: name,
+      email: email,
+      password: password,
+    );
+    if (err != null) throw Exception(err);
+
     email = email.trim().toLowerCase();
     if (users.any((u) => u.email == email)) {
       throw Exception('An account with that email already exists.');
@@ -188,6 +199,9 @@ class DataService extends ChangeNotifier {
 
   AppUser login({required String email, required String password}) {
     email = email.trim().toLowerCase();
+    if (email.isEmpty || password.isEmpty) {
+      throw Exception('Please enter your email and password.');
+    }
     for (final u in users) {
       if (u.email == email && _hasher.verify(password, u.password)) {
         if (_hasher.isLegacy(u.password)) {
