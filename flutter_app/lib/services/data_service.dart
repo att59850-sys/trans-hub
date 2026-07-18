@@ -377,12 +377,16 @@ class DataService extends ChangeNotifier {
   bool isTerminalStatus(String wire) =>
       dom.bookingStatusFromWire(wire).isTerminal;
 
-  void setBookingStatus(String id, String status, {String note = ''}) {
+  /// Transitions a booking. Returns `false` (and does nothing) if the move is
+  /// not a legal lifecycle transition, so callers can surface an error.
+  bool setBookingStatus(String id, String status, {String note = ''}) {
     // Route through the domain repository so the transition is appended to the
     // booking's event history (TH-016) and preserved in the cache, rather than
-    // overwriting the record with the event-less UI model.
-    sl<dom_repo.BookingRepository>()
+    // overwriting the record with the event-less UI model. The repository
+    // enforces the state machine and returns false for illegal moves.
+    final applied = sl<dom_repo.BookingRepository>()
         .setStatus(id, dom.bookingStatusFromWire(status), note: note);
+    if (!applied) return false;
 
     _track(
       AnalyticsEvent.bookingStatusChanged,
@@ -405,6 +409,7 @@ class DataService extends ChangeNotifier {
       }
     }
     notifyListeners();
+    return true;
   }
 
   // ---------- notifications (TH-018) ----------

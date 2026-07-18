@@ -33,7 +33,13 @@ abstract interface class BookingRepository {
   List<Booking> forUser(String userId);
 
   /// Transitions a booking to [status], appending a [BookingEvent].
-  void setStatus(String bookingId, BookingStatus status, {String note});
+  ///
+  /// Enforces the lifecycle state machine: an illegal transition (e.g. a jump
+  /// from pending straight to completed, or any move out of a terminal state)
+  /// is rejected and leaves the booking unchanged. Returns `true` when the
+  /// transition was applied, `false` when it was rejected or the booking was
+  /// not found.
+  bool setStatus(String bookingId, BookingStatus status, {String note});
 }
 
 /// Reviews & aggregate ratings (TH-006: ReviewRepository).

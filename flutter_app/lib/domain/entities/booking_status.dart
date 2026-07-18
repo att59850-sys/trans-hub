@@ -68,6 +68,13 @@ extension BookingStatusX on BookingStatus {
 
   bool get isTerminal =>
       this == BookingStatus.completed || this == BookingStatus.cancelled;
+
+  /// Whether moving directly to [target] is a legal lifecycle transition.
+  ///
+  /// This is the single source of truth for the state machine: the dashboard
+  /// uses [nextStates] to *offer* moves, and the data layer uses this to
+  /// *reject* illegal ones (e.g. a client trying to jump pending → completed).
+  bool canTransitionTo(BookingStatus target) => nextStates.contains(target);
 }
 
 /// Parses a [BookingStatus] from its wire value, tolerating legacy values

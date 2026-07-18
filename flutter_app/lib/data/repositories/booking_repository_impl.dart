@@ -35,12 +35,19 @@ class BookingRepositoryImpl implements BookingRepository {
       all().where((b) => b.userId == userId).toList();
 
   @override
-  void setStatus(String bookingId, BookingStatus status, {String note = ''}) {
+  bool setStatus(String bookingId, BookingStatus status, {String note = ''}) {
     final j = _ds.bookings.get(bookingId);
-    if (j == null) return;
-    final b = bookingFromJson(j as Map)
+    if (j == null) return false;
+    final b = bookingFromJson(j as Map);
+
+    // Defend the lifecycle invariant at the data layer: reject illegal
+    // transitions regardless of who calls us (UI, sync engine, future API).
+    if (!b.status.canTransitionTo(status)) return false;
+
+    b
       ..status = status
       ..events.add(BookingEvent(status: status, note: note));
     _ds.bookings.put(bookingId, b.toJson());
+    return true;
   }
 }

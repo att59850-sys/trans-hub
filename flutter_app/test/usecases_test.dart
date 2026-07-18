@@ -50,10 +50,12 @@ void main() {
     test('UpdateBookingStatus passes status + note', () {
       final repo = MockBookingRepository();
       when(() => repo.setStatus(any(), any(), note: any(named: 'note')))
-          .thenReturn(null);
+          .thenReturn(true);
 
-      UpdateBookingStatus(repo)('b_1', BookingStatus.accepted, note: 'ok');
+      final ok =
+          UpdateBookingStatus(repo)('b_1', BookingStatus.accepted, note: 'ok');
 
+      expect(ok, isTrue);
       verify(() => repo.setStatus('b_1', BookingStatus.accepted, note: 'ok'))
           .called(1);
     });

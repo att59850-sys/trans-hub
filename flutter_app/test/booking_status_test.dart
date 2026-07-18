@@ -32,5 +32,41 @@ void main() {
       expect(BookingStatus.pending.nextStates,
           containsAll([BookingStatus.accepted, BookingStatus.cancelled]));
     });
+
+    group('canTransitionTo (state-machine guard)', () {
+      test('allows only declared next states', () {
+        for (final from in BookingStatus.values) {
+          for (final to in BookingStatus.values) {
+            expect(
+              from.canTransitionTo(to),
+              from.nextStates.contains(to),
+              reason: '${from.wire} -> ${to.wire}',
+            );
+          }
+        }
+      });
+
+      test('blocks illegal jumps a client might attempt', () {
+        expect(BookingStatus.pending.canTransitionTo(BookingStatus.completed),
+            isFalse);
+        expect(BookingStatus.pending.canTransitionTo(BookingStatus.inTransit),
+            isFalse);
+        expect(BookingStatus.draft.canTransitionTo(BookingStatus.completed),
+            isFalse);
+      });
+
+      test('blocks any move out of a terminal state', () {
+        for (final to in BookingStatus.values) {
+          expect(BookingStatus.completed.canTransitionTo(to), isFalse);
+          expect(BookingStatus.cancelled.canTransitionTo(to), isFalse);
+        }
+      });
+
+      test('blocks self-transition (no-op is not a real move)', () {
+        for (final s in BookingStatus.values) {
+          expect(s.canTransitionTo(s), isFalse);
+        }
+      });
+    });
   });
 }

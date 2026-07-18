@@ -316,8 +316,12 @@ class _DashboardScreenState extends State<DashboardScreen>
                       style: const TextStyle(fontSize: 12)),
                   backgroundColor: AppColors.blue50,
                   onPressed: () {
-                    _ds.setBookingStatus(b.id, next);
-                    showToast(context, 'Booking → ${_ds.statusLabel(next)}');
+                    final ok = _ds.setBookingStatus(b.id, next);
+                    showToast(
+                        context,
+                        ok
+                            ? 'Booking → ${_ds.statusLabel(next)}'
+                            : "Couldn't update that booking");
                   },
                 ),
             ]),
