@@ -45,6 +45,32 @@ void main() {
     });
   });
 
+  group('Validators rating rules', () {
+    test('isValidRating enforces the 1..5 range', () {
+      expect(Validators.isValidRating(0), isFalse);
+      expect(Validators.isValidRating(6), isFalse);
+      expect(Validators.isValidRating(999), isFalse);
+      expect(Validators.isValidRating(-3), isFalse);
+      for (var r = 1; r <= 5; r++) {
+        expect(Validators.isValidRating(r), isTrue);
+      }
+    });
+
+    test('clampRating pins out-of-range values into 1..5', () {
+      expect(Validators.clampRating(0), 1);
+      expect(Validators.clampRating(-5), 1);
+      expect(Validators.clampRating(6), 5);
+      expect(Validators.clampRating(999), 5);
+      expect(Validators.clampRating(3), 3);
+    });
+
+    test('isValidReviewText requires non-empty body', () {
+      expect(Validators.isValidReviewText(''), isFalse);
+      expect(Validators.isValidReviewText('   '), isFalse);
+      expect(Validators.isValidReviewText('ok'), isTrue);
+    });
+  });
+
   group('Validators.signupError', () {
     test('reports the first failing field, in field order', () {
       expect(Validators.signupError(name: '  ', email: 'x', password: 'x'),

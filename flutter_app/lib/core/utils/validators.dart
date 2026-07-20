@@ -30,6 +30,23 @@ class Validators {
   static bool isValidPassword(String password) =>
       password.length >= minPasswordLength;
 
+  /// Allowed inclusive range for a star rating.
+  static const int minRating = 1;
+  static const int maxRating = 5;
+
+  /// Whether [rating] is a legal star value (1..5).
+  static bool isValidRating(int rating) =>
+      rating >= minRating && rating <= maxRating;
+
+  /// Clamps [rating] into the legal 1..5 range so a corrupt or out-of-range
+  /// stored value can never skew a displayed average.
+  static int clampRating(int rating) => rating < minRating
+      ? minRating
+      : (rating > maxRating ? maxRating : rating);
+
+  /// Whether review body text is acceptable (non-empty after trimming).
+  static bool isValidReviewText(String text) => text.trim().isNotEmpty;
+
   static bool isNonEmptyName(String name) => name.trim().isNotEmpty;
 
   /// Returns a human-readable error for invalid sign-up input, or null if the

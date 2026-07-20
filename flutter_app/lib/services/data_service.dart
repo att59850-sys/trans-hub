@@ -128,7 +128,12 @@ class DataService extends ChangeNotifier {
   ({double avg, int count}) ratingFor(String companyId) {
     final rs = reviewsFor(companyId);
     if (rs.isEmpty) return (avg: 0, count: 0);
-    final avg = rs.map((r) => r.rating).reduce((a, b) => a + b) / rs.length;
+    // Clamp each rating on read so any legacy/corrupt out-of-range value can
+    // never push a company's average outside 1..5.
+    final avg = rs
+            .map((r) => Validators.clampRating(r.rating))
+            .reduce((a, b) => a + b) /
+        rs.length;
     return (avg: (avg * 10).round() / 10, count: rs.length);
   }
 
@@ -460,6 +465,13 @@ class DataService extends ChangeNotifier {
 
   // ---------- reviews ----------
   void addReview(Review r) {
+    // Defend rating integrity regardless of caller: clamp to the legal 1..5
+    // range and require non-empty body text (a QA pass showed an out-of-range
+    // rating could skew a company's displayed average, e.g. a 999-star review).
+    if (!Validators.isValidReviewText(r.text)) {
+      throw Exception('Please write a short review.');
+    }
+    r.rating = Validators.clampRating(r.rating);
     _reviewsBox.put(r.id, r.toJson());
     _track(
       AnalyticsEvent.reviewSubmitted,
