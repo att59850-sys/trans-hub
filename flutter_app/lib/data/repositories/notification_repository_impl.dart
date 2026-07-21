@@ -16,7 +16,15 @@ class NotificationRepositoryImpl implements NotificationRepository {
   @override
   List<AppNotification> forUser(String userId) =>
       _all.where((n) => n.userId == userId).toList()
-        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        // Newest first. Tie-break equal `createdAt` by id so the order is
+        // deterministic and stable: a single action can fan out several
+        // notifications in the SAME millisecond, and a createdAt-only sort left
+        // their order at the mercy of Hive iteration order — the list could
+        // reorder/flicker between reads. (Found via adversarial QA round 5.)
+        ..sort((a, b) {
+          final byTime = b.createdAt.compareTo(a.createdAt);
+          return byTime != 0 ? byTime : b.id.compareTo(a.id);
+        });
 
   @override
   int unreadCount(String userId) =>
