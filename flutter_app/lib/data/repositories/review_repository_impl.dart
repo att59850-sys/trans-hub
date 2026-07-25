@@ -1,3 +1,4 @@
+import '../../core/utils/ordering.dart';
 import '../../core/utils/validators.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/repositories/repositories.dart';
@@ -15,7 +16,9 @@ class ReviewRepositoryImpl implements ReviewRepository {
       .map((e) => reviewFromJson(e as Map))
       .where((r) => r.companyId == companyId)
       .toList()
-    ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    // Newest first, stable on same-millisecond ties (QA round 7 sweep).
+    ..sort(
+        (a, b) => Ordering.newestFirst(a.createdAt, a.id, b.createdAt, b.id));
 
   @override
   ({double avg, int count}) ratingFor(String companyId) {

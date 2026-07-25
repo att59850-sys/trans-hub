@@ -5,6 +5,7 @@ import '../core/config/app_config.dart';
 import '../core/di/injection.dart';
 import '../core/maps/maps_service.dart';
 import '../core/telemetry/analytics.dart';
+import '../core/utils/ordering.dart';
 import '../core/utils/password_hasher.dart';
 import '../core/utils/validators.dart';
 import '../data/datasources/local/hive_local_datasource.dart';
@@ -115,15 +116,20 @@ class DataService extends ChangeNotifier {
   List<AppUser> get users =>
       _usersBox.values.map((e) => AppUser.fromJson(e as Map)).toList();
 
-  List<Booking> get bookings =>
-      _bookingsBox.values.map((e) => Booking.fromJson(e as Map)).toList()
-        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  List<Booking> get bookings => _bookingsBox.values
+      .map((e) => Booking.fromJson(e as Map))
+      .toList()
+    // Newest first, stable on same-millisecond ties (QA round 7 sweep).
+    ..sort(
+        (a, b) => Ordering.newestFirst(a.createdAt, a.id, b.createdAt, b.id));
 
   List<Review> reviewsFor(String companyId) => _reviewsBox.values
       .map((e) => Review.fromJson(e as Map))
       .where((r) => r.companyId == companyId)
       .toList()
-    ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    // Newest first, stable on same-millisecond ties (QA round 7 sweep).
+    ..sort(
+        (a, b) => Ordering.newestFirst(a.createdAt, a.id, b.createdAt, b.id));
 
   ({double avg, int count}) ratingFor(String companyId) {
     final rs = reviewsFor(companyId);
@@ -285,7 +291,9 @@ class DataService extends ChangeNotifier {
           c.verificationStatus == 'submitted' ||
           c.verificationStatus == 'under_review')
       .toList()
-    ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    // Oldest first (review queue), stable on same-ms ties (QA round 7 sweep).
+    ..sort(
+        (a, b) => Ordering.oldestFirst(a.createdAt, a.id, b.createdAt, b.id));
 
   /// Transitions a company's verification status (e.g. admin review action).
   /// Keeps the legacy [Company.verified] boolean in sync and notifies the

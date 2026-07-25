@@ -1,3 +1,4 @@
+import '../../core/utils/ordering.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/repositories/repositories.dart';
 import '../datasources/local/hive_local_datasource.dart';
@@ -10,9 +11,12 @@ class BookingRepositoryImpl implements BookingRepository {
   final HiveLocalDataSource _ds;
 
   @override
-  List<Booking> all() =>
-      _ds.bookings.values.map((e) => bookingFromJson(e as Map)).toList()
-        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  List<Booking> all() => _ds.bookings.values
+      .map((e) => bookingFromJson(e as Map))
+      .toList()
+    // Newest first, stable on same-millisecond ties (QA round 7 sweep).
+    ..sort(
+        (a, b) => Ordering.newestFirst(a.createdAt, a.id, b.createdAt, b.id));
 
   @override
   Booking create(Booking booking) {
