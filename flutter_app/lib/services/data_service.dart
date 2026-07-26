@@ -489,15 +489,27 @@ class DataService extends ChangeNotifier {
   }
 
   // ---------- favorites ----------
-  List<String> get favorites =>
-      (_box.get('favorites') as List?)?.map((e) => e.toString()).toList() ?? [];
+  List<String> get favorites {
+    // De-dupe on read so a legacy/corrupt list holding the same id twice can't
+    // break isFav/toggleFav (a QA pass showed a duplicate made "unfavorite"
+    // silently fail — the heart stayed filled). Preserves first-seen order.
+    final raw = (_box.get('favorites') as List?)?.map((e) => e.toString()) ??
+        const <String>[];
+    final seen = <String>{};
+    final out = <String>[];
+    for (final id in raw) {
+      if (seen.add(id)) out.add(id);
+    }
+    return out;
+  }
 
   bool isFav(String companyId) => favorites.contains(companyId);
 
   bool toggleFav(String companyId) {
-    final favs = favorites;
+    final favs = favorites; // already de-duped
     if (favs.contains(companyId)) {
-      favs.remove(companyId);
+      // removeWhere clears ALL copies, not just the first.
+      favs.removeWhere((e) => e == companyId);
     } else {
       favs.add(companyId);
     }
