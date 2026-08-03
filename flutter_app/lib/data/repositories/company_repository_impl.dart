@@ -1,3 +1,4 @@
+import '../../core/utils/validators.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/repositories/repositories.dart';
 import '../datasources/local/hive_local_datasource.dart';
@@ -26,6 +27,9 @@ class CompanyRepositoryImpl implements CompanyRepository {
   void addService(String companyId, TransportService service) {
     final c = byId(companyId);
     if (c == null) return;
+    // Sanitize price at the data layer too, so a non-finite/negative value can
+    // never reach storage regardless of which path wrote it (QA round 9).
+    service.price = Validators.sanitizePrice(service.price);
     c.services.add(service);
     save(c);
   }
@@ -34,6 +38,7 @@ class CompanyRepositoryImpl implements CompanyRepository {
   void updateService(String companyId, TransportService service) {
     final c = byId(companyId);
     if (c == null) return;
+    service.price = Validators.sanitizePrice(service.price);
     final i = c.services.indexWhere((x) => x.id == service.id);
     if (i >= 0) c.services[i] = service;
     save(c);

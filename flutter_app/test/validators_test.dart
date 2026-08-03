@@ -71,6 +71,32 @@ void main() {
     });
   });
 
+  group('Validators price rules', () {
+    test('isValidPrice rejects non-finite, negative and absurd values', () {
+      expect(Validators.isValidPrice(double.infinity), isFalse);
+      expect(Validators.isValidPrice(double.negativeInfinity), isFalse);
+      expect(Validators.isValidPrice(double.nan), isFalse);
+      expect(Validators.isValidPrice(-0.01), isFalse);
+      expect(Validators.isValidPrice(-50), isFalse);
+      expect(Validators.isValidPrice(1e12), isFalse);
+    });
+
+    test('isValidPrice accepts 0..max', () {
+      expect(Validators.isValidPrice(0), isTrue);
+      expect(Validators.isValidPrice(120.50), isTrue);
+      expect(Validators.isValidPrice(Validators.maxServicePrice), isTrue);
+    });
+
+    test('sanitizePrice maps every hazard to a safe value', () {
+      expect(Validators.sanitizePrice(double.infinity), 0);
+      expect(Validators.sanitizePrice(double.negativeInfinity), 0);
+      expect(Validators.sanitizePrice(double.nan), 0);
+      expect(Validators.sanitizePrice(-50), 0);
+      expect(Validators.sanitizePrice(1e12), Validators.maxServicePrice);
+      expect(Validators.sanitizePrice(120.50), 120.50);
+    });
+  });
+
   group('Validators.signupError', () {
     test('reports the first failing field, in field order', () {
       expect(Validators.signupError(name: '  ', email: 'x', password: 'x'),

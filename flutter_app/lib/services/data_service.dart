@@ -318,6 +318,10 @@ class DataService extends ChangeNotifier {
   void addService(String companyId, TransportService s) {
     final c = company(companyId);
     if (c == null) return;
+    // Defend price integrity regardless of caller: a non-finite (NaN/±Infinity)
+    // or negative price would crash the service card or show a nonsensical
+    // figure (QA round 9). Sanitize before persisting.
+    s.price = Validators.sanitizePrice(s.price);
     c.services.add(s);
     updateCompany(c);
     _track(AnalyticsEvent.serviceCreated, params: {'company_id': companyId});
@@ -326,6 +330,7 @@ class DataService extends ChangeNotifier {
   void updateService(String companyId, TransportService s) {
     final c = company(companyId);
     if (c == null) return;
+    s.price = Validators.sanitizePrice(s.price);
     final i = c.services.indexWhere((x) => x.id == s.id);
     if (i >= 0) c.services[i] = s;
     updateCompany(c);

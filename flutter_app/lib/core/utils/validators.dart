@@ -49,6 +49,25 @@ class Validators {
 
   static bool isNonEmptyName(String name) => name.trim().isNotEmpty;
 
+  /// Upper bound for a service price. A price above this is almost certainly a
+  /// data-entry slip (e.g. a stray trailing digit) and would render as an
+  /// absurd figure; we clamp rather than reject so the edit still saves.
+  static const double maxServicePrice = 1000000; // $1,000,000
+
+  /// Whether [price] is a usable service price: finite (not NaN/±Infinity) and
+  /// non-negative. A non-finite price crashes `priceLabel` (`(±Inf).toInt()`
+  /// throws) and a negative price renders as a nonsensical `$-50`.
+  static bool isValidPrice(double price) =>
+      price.isFinite && price >= 0 && price <= maxServicePrice;
+
+  /// Sanitizes a service price so it can never crash a label or show a negative
+  /// figure: non-finite → 0 (treated as "On quote"), negatives → 0, and
+  /// anything above [maxServicePrice] is clamped down.
+  static double sanitizePrice(double price) {
+    if (!price.isFinite || price < 0) return 0;
+    return price > maxServicePrice ? maxServicePrice : price;
+  }
+
   /// Returns a human-readable error for invalid sign-up input, or null if the
   /// input is acceptable. Order mirrors the fields a user fills in.
   static String? signupError({
