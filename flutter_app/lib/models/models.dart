@@ -127,6 +127,12 @@ class Company {
     return null;
   }
 
+  /// The concatenated text the Browse search matches against (name, tagline,
+  /// city, service names and the human category label). Kept here so the widget
+  /// and its tests build the identical haystack.
+  String get searchHaystack =>
+      '$name $tagline $city ${services.map((s) => s.name).join(' ')} ${categoryById(category).name}';
+
   factory Company.fromJson(Map j) => Company(
         id: j['id'] as String?,
         ownerId: j['ownerId'] ?? '',

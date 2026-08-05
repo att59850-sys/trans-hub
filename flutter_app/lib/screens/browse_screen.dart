@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/utils/search_matcher.dart';
 import '../services/data_service.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
@@ -40,12 +41,10 @@ class _BrowseScreenState extends State<BrowseScreen> {
     var list = _ds.companies.where((c) {
       if (_cat != null && c.category != _cat) return false;
       if (_verifiedOnly && !c.verified) return false;
-      if (_query.isNotEmpty) {
-        final hay =
-            ('${c.name} ${c.tagline} ${c.city} ${c.services.map((s) => s.name).join(' ')} ${categoryById(c.category).name}')
-                .toLowerCase();
-        if (!hay.contains(_query.toLowerCase())) return false;
-      }
+      // Trim + case-fold the query so a stray leading/trailing space (common
+      // from mobile keyboards) can't hide a real match, and a whitespace-only
+      // query behaves like an empty one (QA round 10).
+      if (!SearchMatcher.matches(c.searchHaystack, _query)) return false;
       return true;
     }).toList();
 
@@ -59,7 +58,9 @@ class _BrowseScreenState extends State<BrowseScreen> {
         sorter = (a, b) => b.fleetSize.compareTo(a.fleetSize);
         break;
       case 'name':
-        sorter = (a, b) => a.name.compareTo(b.name);
+        // Case-insensitive so a lowercase initial doesn't sort after an
+        // uppercase one (QA round 10).
+        sorter = (a, b) => SearchMatcher.compareNames(a.name, b.name);
         break;
       default:
         sorter = (a, b) =>
