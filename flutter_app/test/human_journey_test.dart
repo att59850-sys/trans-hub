@@ -109,6 +109,20 @@ void main() {
     expect(mine.map((b) => b.id), contains(booking.id));
     debugPrint('     booking ${booking.id} status=${booking.status}');
 
+    step('A booking with a malformed contact email is rejected (QA round 11)');
+    final beforeCount = ds.bookingsForCompany(target.id).length;
+    expect(
+      () => ds.createBooking(Booking(
+        companyId: target.id,
+        userId: customer.id,
+        contactName: 'Jane',
+        contactEmail: 'notanemail',
+      )),
+      throwsA(isA<Exception>()),
+    );
+    // The rejected request must NOT have been persisted.
+    expect(ds.bookingsForCompany(target.id).length, beforeCount);
+
     step('Leave a review');
     ds.addReview(Review(
       companyId: target.id,

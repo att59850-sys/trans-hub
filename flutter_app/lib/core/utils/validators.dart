@@ -82,4 +82,17 @@ class Validators {
     }
     return null;
   }
+
+  /// Returns a human-readable error for invalid booking/quote contact details,
+  /// or null if acceptable. A provider can only follow up if they have a real
+  /// name and a well-formed email; the booking form checked only for
+  /// non-emptiness, so a garbage email like "notanemail" still got through.
+  static String? bookingContactError({
+    required String name,
+    required String email,
+  }) {
+    if (!isNonEmptyName(name)) return 'Please enter your name.';
+    if (!isValidEmail(email)) return 'Please enter a valid email address.';
+    return null;
+  }
 }

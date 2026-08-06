@@ -345,6 +345,19 @@ class DataService extends ChangeNotifier {
 
   // ---------- bookings ----------
   Booking createBooking(Booking b) {
+    // Defend contact integrity regardless of caller (QA round 11): a provider
+    // can only follow up with a real name and a well-formed email. The booking
+    // form checks this too, but the facade is the single choke point so no
+    // other path can persist an unreachable request.
+    final contactErr = Validators.bookingContactError(
+        name: b.contactName, email: b.contactEmail);
+    if (contactErr != null) {
+      throw Exception(contactErr);
+    }
+    // Normalize the stored contact so trailing spaces / casing don't vary.
+    b.contactName = b.contactName.trim();
+    b.contactEmail = b.contactEmail.trim();
+
     // Persist the UI model, then seed the lifecycle history with an initial
     // "Booking created" event (TH-016) by merging the events key into the
     // stored JSON without coupling the legacy UI model to the event type.

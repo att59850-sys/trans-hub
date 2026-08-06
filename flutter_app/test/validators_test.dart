@@ -97,6 +97,39 @@ void main() {
     });
   });
 
+  group('Validators.bookingContactError', () {
+    test('rejects empty name first, then malformed email', () {
+      expect(Validators.bookingContactError(name: ' ', email: 'j@e.com'),
+          'Please enter your name.');
+      for (final bad in [
+        '',
+        '   ',
+        'notanemail',
+        'j@',
+        '@example.com',
+        'a b@c.com',
+        'foo@bar',
+      ]) {
+        expect(Validators.bookingContactError(name: 'Jane', email: bad),
+            'Please enter a valid email address.',
+            reason: '"$bad"');
+      }
+    });
+
+    test('accepts a real name + well-formed email (trimmed, any case)', () {
+      for (final good in [
+        'jane@example.com',
+        ' JANE@EXAMPLE.COM ',
+        'first.last@sub.domain.co',
+        'user+tag@gmail.com',
+      ]) {
+        expect(
+            Validators.bookingContactError(name: 'Jane', email: good), isNull,
+            reason: '"$good"');
+      }
+    });
+  });
+
   group('Validators.signupError', () {
     test('reports the first failing field, in field order', () {
       expect(Validators.signupError(name: '  ', email: 'x', password: 'x'),

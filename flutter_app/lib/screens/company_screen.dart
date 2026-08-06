@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/maps/maps_service.dart';
+import '../core/utils/validators.dart';
 import '../services/data_service.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
@@ -430,9 +431,14 @@ void openBookingSheet(
                 style:
                     ElevatedButton.styleFrom(backgroundColor: AppColors.orange),
                 onPressed: () {
-                  if (name.text.trim().isEmpty || email.text.trim().isEmpty) {
-                    showToast(ctx, 'Please enter your name and email',
-                        error: true);
+                  // Validate contact details up-front so a provider always has a
+                  // reachable name + well-formed email (QA round 11): the old
+                  // guard only checked for emptiness, letting "notanemail"
+                  // through.
+                  final err = Validators.bookingContactError(
+                      name: name.text, email: email.text);
+                  if (err != null) {
+                    showToast(ctx, err, error: true);
                     return;
                   }
                   _ds.createBooking(Booking(
