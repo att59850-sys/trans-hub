@@ -8,6 +8,7 @@ import '../core/telemetry/analytics.dart';
 import '../core/utils/ordering.dart';
 import '../core/utils/password_hasher.dart';
 import '../core/utils/validators.dart';
+import '../core/verification/verification_status.dart';
 import '../data/datasources/local/hive_local_datasource.dart';
 import '../domain/entities/app_notification.dart';
 import '../domain/entities/booking_status.dart' as dom;
@@ -269,10 +270,16 @@ class DataService extends ChangeNotifier {
 
   /// Provider submits their company for verification (unverified/rejected →
   /// submitted). Notifies the owner that the request was received (TH-018).
-  void submitForVerification(String companyId) {
+  ///
+  /// Returns false (a no-op) if the transition is illegal — e.g. an already
+  /// verified company must not be able to re-submit and lose its badge, and a
+  /// company already in the queue must not be re-queued (QA round 12).
+  bool submitForVerification(String companyId) {
     final c = company(companyId);
-    if (c == null) return;
-    c.verificationStatus = 'submitted';
+    if (c == null) return false;
+    final current = verificationStatusFromWire(c.verificationStatus);
+    if (!current.canTransitionTo(VerificationStatus.submitted)) return false;
+    c.verificationStatus = VerificationStatus.submitted.wire;
     updateCompany(c);
     addNotification(AppNotification(
       userId: c.ownerId,
@@ -280,6 +287,7 @@ class DataService extends ChangeNotifier {
       body: 'Your verification request for ${c.name} is now in the queue.',
       kind: NotificationKind.system,
     ));
+    return true;
   }
 
   /// Whether the signed-in user is an administrator (config-driven, TH-017).
@@ -298,20 +306,35 @@ class DataService extends ChangeNotifier {
   /// Transitions a company's verification status (e.g. admin review action).
   /// Keeps the legacy [Company.verified] boolean in sync and notifies the
   /// owner of the outcome.
-  void setVerificationStatus(String companyId, String status) {
+  ///
+  /// Returns false (a no-op) if [status] is not a legal next state from the
+  /// company's current status. This enforces the review state machine at the
+  /// data layer so an unknown/misspelled status or an illegal jump (e.g.
+  /// unverified → approved with no submission) can never strand a company
+  /// out of the queue or hand out an unearned badge (QA round 12).
+  bool setVerificationStatus(String companyId, String status) {
     final c = company(companyId);
-    if (c == null) return;
-    c.verificationStatus = status;
-    c.verified = status == 'approved';
+    if (c == null) return false;
+    final current = verificationStatusFromWire(c.verificationStatus);
+    final target = verificationStatusFromWire(status);
+    // Reject unknown/misspelled statuses (they parse to unverified, which is
+    // never a legal explicit target here) and illegal transitions.
+    if (target == VerificationStatus.unverified ||
+        !current.canTransitionTo(target)) {
+      return false;
+    }
+    c.verificationStatus = target.wire;
+    c.verified = target == VerificationStatus.approved;
     updateCompany(c);
     addNotification(AppNotification(
       userId: c.ownerId,
-      title: 'Verification ${verificationLabel(status).toLowerCase()}',
-      body: status == 'approved'
+      title: 'Verification ${target.label.toLowerCase()}',
+      body: target == VerificationStatus.approved
           ? '${c.name} is now a verified provider.'
-          : 'Verification status for ${c.name}: ${verificationLabel(status)}.',
+          : 'Verification status for ${c.name}: ${target.label}.',
       kind: NotificationKind.system,
     ));
+    return true;
   }
 
   // ---------- services ----------

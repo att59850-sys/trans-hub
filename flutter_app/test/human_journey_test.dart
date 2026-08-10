@@ -245,11 +245,24 @@ void main() {
 
     step('Approve the first pending company');
     final co = queue.first;
-    ds.setVerificationStatus(co.id, 'approved');
+    final applied = ds.setVerificationStatus(co.id, 'approved');
+    expect(applied, isTrue, reason: 'submitted → approved is legal');
     final approved = ds.company(co.id)!;
     debugPrint('     ${approved.name} -> ${approved.verificationStatus}');
     expect(approved.verificationStatus, 'approved');
     expect(approved.verified, isTrue,
         reason: 'legacy verified flag should stay in sync');
+
+    step('Verification state machine is enforced at the facade (QA round 12)');
+    // An approved company cannot re-submit (self-demotion) or be re-transitioned.
+    expect(ds.submitForVerification(co.id), isFalse,
+        reason: 'approved must not re-enter the queue');
+    expect(ds.setVerificationStatus(co.id, 'rejected'), isFalse,
+        reason: 'approved is terminal');
+    // A misspelled status is a no-op, not a silent strand.
+    expect(ds.setVerificationStatus(co.id, 'aproved'), isFalse);
+    // The company is untouched by all the rejected attempts.
+    expect(ds.company(co.id)!.verificationStatus, 'approved');
+    expect(ds.company(co.id)!.verified, isTrue);
   });
 }

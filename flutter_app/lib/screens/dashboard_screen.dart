@@ -165,8 +165,14 @@ class _DashboardScreenState extends State<DashboardScreen>
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.blue),
             onPressed: () {
-              _ds.submitForVerification(c.id);
-              showToast(context, 'Submitted for verification');
+              final ok = _ds.submitForVerification(c.id);
+              showToast(
+                context,
+                ok
+                    ? 'Submitted for verification'
+                    : 'This company can’t be submitted right now.',
+                error: !ok,
+              );
             },
             child: const Text('Submit'),
           ),
