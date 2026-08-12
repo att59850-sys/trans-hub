@@ -153,6 +153,21 @@ void main() {
         reason: 'company sign-up should auto-create a Company');
     debugPrint('     company ${myCo!.id} "${myCo.name}"');
 
+    step('Edit profile with junk values (QA round 13): they are sanitized');
+    final originalName = myCo.name;
+    myCo
+      ..name = '   ' // user cleared the name field
+      ..fleetSize = -5
+      ..yearsActive = -3;
+    ds.updateCompany(myCo);
+    final cleaned = ds.company(myCo.id)!;
+    expect(cleaned.name, originalName,
+        reason: 'a blanked name must fall back to the stored name');
+    expect(cleaned.fleetSize, greaterThanOrEqualTo(1),
+        reason: 'fleet size clamps to >= 1');
+    expect(cleaned.yearsActive, greaterThanOrEqualTo(0),
+        reason: 'years-active clamps to >= 0');
+
     step('Submit for verification');
     ds.submitForVerification(myCo.id);
     final afterSubmit = ds.company(myCo.id)!;

@@ -68,6 +68,25 @@ class Validators {
     return price > maxServicePrice ? maxServicePrice : price;
   }
 
+  /// A transport company always operates at least one vehicle, and a fleet
+  /// above this is almost certainly a typo we clamp rather than reject.
+  static const int minFleetSize = 1;
+  static const int maxFleetSize = 100000;
+
+  /// Clamps a fleet size into a sane range so the profile can never show
+  /// "-5 vehicles" or "0+ vehicles".
+  static int sanitizeFleetSize(int fleet) => fleet < minFleetSize
+      ? minFleetSize
+      : (fleet > maxFleetSize ? maxFleetSize : fleet);
+
+  /// Years a business has been active: non-negative, capped at a plausible age.
+  static const int maxYearsActive = 200;
+
+  /// Clamps years-active into [0, maxYearsActive] so the profile can never show
+  /// "-3 yrs" or an absurd figure.
+  static int sanitizeYearsActive(int years) =>
+      years < 0 ? 0 : (years > maxYearsActive ? maxYearsActive : years);
+
   /// Returns a human-readable error for invalid sign-up input, or null if the
   /// input is acceptable. Order mirrors the fields a user fills in.
   static String? signupError({

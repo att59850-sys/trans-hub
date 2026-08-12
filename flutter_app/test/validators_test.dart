@@ -97,6 +97,23 @@ void main() {
     });
   });
 
+  group('Validators company profile rules', () {
+    test('sanitizeFleetSize clamps to [1, max]', () {
+      expect(Validators.sanitizeFleetSize(-5), 1);
+      expect(Validators.sanitizeFleetSize(0), 1);
+      expect(Validators.sanitizeFleetSize(1), 1);
+      expect(Validators.sanitizeFleetSize(42), 42);
+      expect(Validators.sanitizeFleetSize(99999999), Validators.maxFleetSize);
+    });
+
+    test('sanitizeYearsActive clamps to [0, max]', () {
+      expect(Validators.sanitizeYearsActive(-3), 0);
+      expect(Validators.sanitizeYearsActive(0), 0);
+      expect(Validators.sanitizeYearsActive(12), 12);
+      expect(Validators.sanitizeYearsActive(9999), Validators.maxYearsActive);
+    });
+  });
+
   group('Validators.bookingContactError', () {
     test('rejects empty name first, then malformed email', () {
       expect(Validators.bookingContactError(name: ' ', email: 'j@e.com'),

@@ -239,6 +239,21 @@ class DataService extends ChangeNotifier {
 
   // ---------- companies ----------
   void updateCompany(Company c) {
+    // Sanitize numeric profile fields regardless of caller so the UI can never
+    // render "-5 vehicles" / "0+ vehicles" / "-3 yrs" (QA round 13). These are
+    // idempotent for already-valid values, so internal callers are unaffected.
+    c.fleetSize = Validators.sanitizeFleetSize(c.fleetSize);
+    c.yearsActive = Validators.sanitizeYearsActive(c.yearsActive);
+    // A company must keep a name: if a caller blanked it, fall back to the last
+    // stored name rather than persisting a nameless card.
+    if (!Validators.isNonEmptyName(c.name)) {
+      final existing = company(c.id);
+      if (existing != null && Validators.isNonEmptyName(existing.name)) {
+        c.name = existing.name;
+      }
+    } else {
+      c.name = c.name.trim();
+    }
     _companiesBox.put(c.id, c.toJson());
     notifyListeners();
   }

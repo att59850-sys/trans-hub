@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/utils/validators.dart';
 import '../services/data_service.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
@@ -570,13 +571,21 @@ class _ProfileEditorState extends State<ProfileEditor> {
         width: double.infinity,
         child: ElevatedButton.icon(
           onPressed: () {
+            // Require a company name; clamp fleet/years to sane ranges so the
+            // profile can never render "-5 vehicles" or "-3 yrs" (QA round 13).
+            if (!Validators.isNonEmptyName(_name.text)) {
+              showToast(context, 'Please enter your company name', error: true);
+              return;
+            }
             final c = widget.company
               ..name = _name.text.trim()
               ..tagline = _tagline.text.trim()
               ..category = _category
               ..city = _city.text.trim()
-              ..fleetSize = int.tryParse(_fleet.text) ?? 1
-              ..yearsActive = int.tryParse(_years.text) ?? 0
+              ..fleetSize = Validators.sanitizeFleetSize(
+                  int.tryParse(_fleet.text) ?? Validators.minFleetSize)
+              ..yearsActive =
+                  Validators.sanitizeYearsActive(int.tryParse(_years.text) ?? 0)
               ..coverage = _coverage.text
                   .split(',')
                   .map((s) => s.trim())
