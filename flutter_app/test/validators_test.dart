@@ -166,4 +166,42 @@ void main() {
       );
     });
   });
+
+  group('Validators.reviewEligibilityError (QA round 14)', () {
+    test('anonymous reviewer (null/empty id) is always allowed', () {
+      expect(
+          Validators.reviewEligibilityError(
+              reviewerId: null, ownerUserId: 'owner'),
+          isNull);
+      expect(
+          Validators.reviewEligibilityError(
+              reviewerId: '', ownerUserId: 'owner'),
+          isNull);
+    });
+
+    test('reviewing another company is allowed', () {
+      expect(
+          Validators.reviewEligibilityError(
+              reviewerId: 'customer', ownerUserId: 'owner'),
+          isNull);
+    });
+
+    test('a company owner cannot review their own company', () {
+      expect(
+          Validators.reviewEligibilityError(
+              reviewerId: 'owner', ownerUserId: 'owner'),
+          isNotNull);
+    });
+
+    test('no known owner -> allowed', () {
+      expect(
+          Validators.reviewEligibilityError(
+              reviewerId: 'customer', ownerUserId: null),
+          isNull);
+      expect(
+          Validators.reviewEligibilityError(
+              reviewerId: 'customer', ownerUserId: ''),
+          isNull);
+    });
+  });
 }

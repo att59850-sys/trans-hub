@@ -37,6 +37,26 @@ class ReviewRepositoryImpl implements ReviewRepository {
   void add(Review review) {
     // Clamp the rating into range before persisting (defense-in-depth).
     review.rating = Validators.clampRating(review.rating);
-    _ds.reviews.put(review.id, review.toJson());
+
+    // One review per user per company (QA round 14): a repeat submission from
+    // the same account edits its existing row in place rather than stacking a
+    // new one, so a single user cannot skew a company's average or count.
+    // Anonymous reviewers (null/empty userId) cannot be de-duplicated.
+    final storageId =
+        _existingReviewId(review.userId, review.companyId) ?? review.id;
+    final json = review.toJson()..['id'] = storageId;
+    _ds.reviews.put(storageId, json);
+  }
+
+  /// Id of an existing review by [userId] for [companyId], or null if none.
+  String? _existingReviewId(String? userId, String companyId) {
+    if (userId == null || userId.isEmpty) return null;
+    for (final e in _ds.reviews.values) {
+      final j = e as Map;
+      if (j['userId'] == userId && j['companyId'] == companyId) {
+        return j['id'] as String?;
+      }
+    }
+    return null;
   }
 }

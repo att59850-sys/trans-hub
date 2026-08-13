@@ -64,4 +64,59 @@ void main() {
     final r = repo.ratingFor('c1');
     expect(r.avg, lessThanOrEqualTo(5.0));
   });
+
+  // ---- QA round 14: one review per user per company ----
+
+  Review userReview(String userId, int rating, {String text = 'ok'}) => Review(
+        companyId: 'c1',
+        userId: userId,
+        name: 'Tester',
+        rating: rating,
+        text: text,
+      );
+
+  test('a single user cannot stack multiple reviews for one company', () {
+    for (var i = 0; i < 5; i++) {
+      repo.add(userReview('troll', 1, text: 'bad #$i'));
+    }
+    final rows = repo.forCompany('c1');
+    expect(rows.length, 1, reason: 'repeat submissions collapse into one row');
+    expect(rows.single.userId, 'troll');
+    expect(rows.single.text, 'bad #4',
+        reason: 'the latest submission wins in place');
+    expect(repo.ratingFor('c1').count, 1);
+  });
+
+  test('a repeat submission updates the existing rating in place', () {
+    repo.add(userReview('u1', 2, text: 'meh'));
+    repo.add(userReview('u1', 5, text: 'they improved'));
+    final rows = repo.forCompany('c1');
+    expect(rows.length, 1);
+    expect(rows.single.rating, 5);
+    expect(repo.ratingFor('c1').avg, 5.0);
+  });
+
+  test('distinct users each keep their own review', () {
+    repo.add(userReview('a', 5));
+    repo.add(userReview('b', 3));
+    repo.add(userReview('c', 4));
+    expect(repo.forCompany('c1').length, 3);
+    expect(repo.ratingFor('c1').avg, 4.0);
+  });
+
+  test('one troll cannot skew the average with many repeats', () {
+    repo.add(userReview('honest', 5));
+    for (var i = 0; i < 10; i++) {
+      repo.add(userReview('troll', 1, text: 'nope #$i'));
+    }
+    final r = repo.ratingFor('c1');
+    expect(r.count, 2, reason: 'two distinct users, not eleven rows');
+    expect(r.avg, 3.0, reason: '(5 + 1) / 2');
+  });
+
+  test('anonymous (null userId) reviews are not merged', () {
+    repo.add(review(5)); // no userId
+    repo.add(review(1)); // no userId
+    expect(repo.forCompany('c1').length, 2);
+  });
 }

@@ -535,13 +535,45 @@ class DataService extends ChangeNotifier {
     if (!Validators.isValidReviewText(r.text)) {
       throw Exception('Please write a short review.');
     }
+
+    // A company owner must not review their own company (QA round 14: a
+    // provider could otherwise post a 5-star self-review and inflate the
+    // rating shown to customers).
+    final owner = company(r.companyId)?.ownerId;
+    final eligibility = Validators.reviewEligibilityError(
+      reviewerId: r.userId,
+      ownerUserId: owner,
+    );
+    if (eligibility != null) throw Exception(eligibility);
+
     r.rating = Validators.clampRating(r.rating);
-    _reviewsBox.put(r.id, r.toJson());
+
+    // One review per user per company (QA round 14): a single account could
+    // otherwise stack unlimited reviews for one company and skew both its
+    // displayed average and its review count. A repeat submission edits the
+    // existing review in place instead of adding a new row. Anonymous
+    // reviewers (null/empty userId) cannot be de-duplicated, so each stands.
+    final existingId = _existingReviewId(r.userId, r.companyId);
+    final storageId = existingId ?? r.id;
+    final json = r.toJson()..['id'] = storageId;
+    _reviewsBox.put(storageId, json);
     _track(
       AnalyticsEvent.reviewSubmitted,
       params: {'company_id': r.companyId, 'rating': r.rating},
     );
     notifyListeners();
+  }
+
+  /// Id of an existing review by [userId] for [companyId], or null if none.
+  String? _existingReviewId(String? userId, String companyId) {
+    if (userId == null || userId.isEmpty) return null;
+    for (final e in _reviewsBox.values) {
+      final j = e as Map;
+      if (j['userId'] == userId && j['companyId'] == companyId) {
+        return j['id'] as String?;
+      }
+    }
+    return null;
   }
 
   // ---------- favorites ----------

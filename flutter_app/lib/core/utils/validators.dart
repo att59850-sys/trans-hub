@@ -47,6 +47,27 @@ class Validators {
   /// Whether review body text is acceptable (non-empty after trimming).
   static bool isValidReviewText(String text) => text.trim().isNotEmpty;
 
+  /// Returns an error message if [reviewerId] is not allowed to review a
+  /// company, or `null` when the review is permitted.
+  ///
+  /// A company owner must not be able to review their own company (that would
+  /// let a provider inflate their own rating). Anonymous reviewers (null
+  /// reviewer id) and reviewers of other companies are always allowed here.
+  ///
+  /// One-review-per-user-per-company de-duplication is enforced at the store
+  /// layer (it needs access to existing rows), not by this pure helper.
+  static String? reviewEligibilityError({
+    required String? reviewerId,
+    required String? ownerUserId,
+  }) {
+    if (reviewerId == null || reviewerId.isEmpty) return null;
+    if (ownerUserId == null || ownerUserId.isEmpty) return null;
+    if (reviewerId == ownerUserId) {
+      return 'You cannot review your own company.';
+    }
+    return null;
+  }
+
   static bool isNonEmptyName(String name) => name.trim().isNotEmpty;
 
   /// Upper bound for a service price. A price above this is almost certainly a
