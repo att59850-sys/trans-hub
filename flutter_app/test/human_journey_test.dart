@@ -279,5 +279,16 @@ void main() {
     // The company is untouched by all the rejected attempts.
     expect(ds.company(co.id)!.verificationStatus, 'approved');
     expect(ds.company(co.id)!.verified, isTrue);
+
+    step('Admin queue truthfulness (QA round 15)');
+    // The approved company must drop out of the queue so the admin can\'t act
+    // on a stale card...
+    expect(ds.companiesForReview.any((c) => c.id == co.id), isFalse,
+        reason: 'a decided company leaves the review queue');
+    // ...and a repeat Approve (e.g. a double-tap) is a no-op. The admin screen
+    // relies on this false return to show a truthful "already updated" toast
+    // instead of a misleading success message.
+    expect(ds.setVerificationStatus(co.id, 'approved'), isFalse,
+        reason: 're-approving an approved company changes nothing');
   });
 }
