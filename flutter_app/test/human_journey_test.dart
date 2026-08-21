@@ -210,6 +210,20 @@ void main() {
     expect(inbox, isNotEmpty,
         reason: 'new-booking notification should reach owner');
 
+    step('A misspelled status wire is rejected (QA round 16)');
+    // Before advancing, confirm a typo can't silently move the booking. The
+    // parser tolerantly falls back to `pending`, but setBookingStatus rejects
+    // any non-canonical wire outright, so the booking must stay put.
+    final startStatus =
+        ds.bookings.firstWhere((b) => b.id == booking.id).status;
+    expect(ds.setBookingStatus(booking.id, 'complete'), isFalse,
+        reason: '"complete" is a typo for "completed"');
+    expect(ds.setBookingStatus(booking.id, 'in-transit'), isFalse,
+        reason: 'hyphenated typo is not a canonical wire');
+    expect(
+        ds.bookings.firstWhere((b) => b.id == booking.id).status, startStatus,
+        reason: 'a rejected typo must not change the booking');
+
     step('Move booking through its lifecycle');
     var current = ds.bookings.firstWhere((b) => b.id == booking.id).status;
     debugPrint('     start: $current');

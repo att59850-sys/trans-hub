@@ -463,6 +463,13 @@ class DataService extends ChangeNotifier {
   /// Transitions a booking. Returns `false` (and does nothing) if the move is
   /// not a legal lifecycle transition, so callers can surface an error.
   bool setBookingStatus(String id, String status, {String note = ''}) {
+    // Reject an unrecognised/misspelled status wire outright (QA round 16).
+    // bookingStatusFromWire tolerantly falls back to `pending`, so without this
+    // guard a typo like "complete" on a `draft` booking would silently move it
+    // to Pending (draft → pending is a legal edge). Only canonical wires may be
+    // written; legacy aliases are read-only compatibility, not write targets.
+    if (!dom.isKnownBookingStatusWire(status)) return false;
+
     // Route through the domain repository so the transition is appended to the
     // booking's event history (TH-016) and preserved in the cache, rather than
     // overwriting the record with the event-less UI model. The repository

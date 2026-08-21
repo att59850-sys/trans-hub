@@ -77,6 +77,23 @@ extension BookingStatusX on BookingStatus {
   bool canTransitionTo(BookingStatus target) => nextStates.contains(target);
 }
 
+/// Canonical wire values (the enum's own `wire` strings). A status write must
+/// use one of these — legacy aliases (e.g. "confirmed") and typos are *not*
+/// valid transition targets even though [bookingStatusFromWire] can still read
+/// a legacy value that was already stored.
+final Set<String> kBookingStatusWires = {
+  for (final s in BookingStatus.values) s.wire,
+};
+
+/// Whether [wire] is a recognised canonical booking-status value.
+///
+/// This guards the transition entry points (facade + repository) so an
+/// unknown/misspelled status cannot be silently coerced into `pending` by
+/// [bookingStatusFromWire]'s tolerant fallback (QA round 16: a typo like
+/// "complete" from a `draft` booking would otherwise move it to Pending).
+bool isKnownBookingStatusWire(String? wire) =>
+    wire != null && kBookingStatusWires.contains(wire);
+
 /// Parses a [BookingStatus] from its wire value, tolerating legacy values
 /// ("confirmed" → accepted) and unknown input (→ pending).
 BookingStatus bookingStatusFromWire(String? s) {
