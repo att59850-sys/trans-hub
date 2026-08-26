@@ -66,7 +66,12 @@ class AccountScreen extends StatelessWidget {
         _tile(Icons.location_on, 'Location',
             _ds.location.isEmpty ? 'Not set' : _ds.location),
         _tile(
-            Icons.favorite, 'Saved providers', '${_ds.favorites.length} saved'),
+            Icons.favorite,
+            'Saved providers',
+            // Count only favorites that still resolve to a live company, so a
+            // provider that has since vanished can't inflate the tally
+            // (QA round 17).
+            '${_ds.favoriteCompanies.length} saved'),
         if (_ds.isAdmin) ...[
           const SizedBox(height: 6),
           InkWell(

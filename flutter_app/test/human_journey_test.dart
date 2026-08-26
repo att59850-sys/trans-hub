@@ -92,6 +92,23 @@ void main() {
     expect(favOn, isTrue);
     expect(ds.isFav(target.id), isTrue);
 
+    step('A favorite pointing at a vanished company is dropped (QA round 17)');
+    // Simulate a dangling favorite (e.g. a sync prune removed the company):
+    // save an id that has no matching company.
+    ds.toggleFav('company_that_no_longer_exists');
+    // The raw list still contains the dangling id...
+    expect(ds.favorites, contains('company_that_no_longer_exists'));
+    // ...but favoriteCompanies resolves only live companies, dropping it, so
+    // the "Saved providers" count reflects what the user can actually open.
+    expect(ds.favoriteCompanies.map((c) => c.id),
+        isNot(contains('company_that_no_longer_exists')));
+    expect(ds.favoriteCompanies.map((c) => c.id), contains(target.id));
+    expect(ds.favoriteCompanies.length, lessThan(ds.favorites.length),
+        reason:
+            'the dangling id inflates the raw list but not the resolved one');
+    // Clean up so the rest of the journey is unaffected.
+    ds.toggleFav('company_that_no_longer_exists');
+
     step('Request a booking');
     final booking = ds.createBooking(Booking(
       companyId: target.id,

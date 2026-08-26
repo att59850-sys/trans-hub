@@ -600,6 +600,22 @@ class DataService extends ChangeNotifier {
 
   bool isFav(String companyId) => favorites.contains(companyId);
 
+  /// Favorited companies that still exist, in the user's saved order.
+  ///
+  /// A saved id can become a dangling reference when its company disappears —
+  /// e.g. a sync `_pull` (server-wins) prunes a company the server no longer
+  /// has. This resolver drops those danglers so callers never render a broken
+  /// tile or crash on a `firstWhere` miss, and so the "Saved providers" count
+  /// reflects only what the user can actually open (QA round 17).
+  List<Company> get favoriteCompanies {
+    final out = <Company>[];
+    for (final id in favorites) {
+      final c = company(id);
+      if (c != null) out.add(c);
+    }
+    return out;
+  }
+
   bool toggleFav(String companyId) {
     final favs = favorites; // already de-duped
     if (favs.contains(companyId)) {
