@@ -265,6 +265,18 @@ void main() {
         '${preview.durationMinutes} min');
     expect(preview.distanceKm, greaterThan(0));
     expect(preview.durationMinutes, greaterThan(0));
+
+    step('Same pickup & dropoff yields no phantom estimate (QA round 18)');
+    // Identical endpoints (and case/space variants) must not surface a
+    // "~0 km / ~5m" estimate that looks like a real quote for a trip from a
+    // place to itself — estimateRoute returns null so the strip stays hidden.
+    expect(await ds.estimateRoute('Boston', 'Boston'), isNull);
+    expect(await ds.estimateRoute('  new york ', 'NEW YORK'), isNull);
+    // Blank endpoints stay null too (unchanged behaviour).
+    expect(await ds.estimateRoute('', 'Boston'), isNull);
+    expect(await ds.estimateRoute('Boston', '   '), isNull);
+    // Two distinct places still preview normally.
+    expect(await ds.estimateRoute('London', 'Paris'), isNotNull);
   });
 
   test('JOURNEY 4: admin reviews the verification queue', () {

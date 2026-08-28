@@ -269,7 +269,23 @@ class DataService extends ChangeNotifier {
     final from = await maps.geocode(pickup);
     final to = await maps.geocode(dropoff);
     if (from == null || to == null) return null;
+    // No meaningful route when pickup and dropoff are the same place (QA round
+    // 18): identical text — or two inputs that resolve to the same point —
+    // would otherwise render a phantom "~0 km / ~5m" estimate that looks like a
+    // real quote for a trip from a location to itself. Suppress it so the
+    // preview strip stays hidden until there are two distinct endpoints.
+    if (_sameEndpoint(pickup, dropoff, from, to)) return null;
     return maps.routePreview(from, to);
+  }
+
+  /// Whether two endpoints denote the same place: equal case/space-folded text,
+  /// or coordinates within ~11 m of each other.
+  bool _sameEndpoint(
+      String pickup, String dropoff, GeoPoint from, GeoPoint to) {
+    if (pickup.trim().toLowerCase() == dropoff.trim().toLowerCase())
+      return true;
+    const eps = 1e-4;
+    return (from.lat - to.lat).abs() < eps && (from.lng - to.lng).abs() < eps;
   }
 
   // ---------- provider verification (TH-017) ----------
