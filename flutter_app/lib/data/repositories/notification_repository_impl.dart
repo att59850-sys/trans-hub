@@ -1,3 +1,4 @@
+import '../../core/utils/ordering.dart';
 import '../../domain/entities/app_notification.dart';
 import '../../domain/repositories/notification_repository.dart';
 import '../datasources/local/hive_local_datasource.dart';
@@ -14,9 +15,15 @@ class NotificationRepositoryImpl implements NotificationRepository {
       .toList();
 
   @override
-  List<AppNotification> forUser(String userId) =>
-      _all.where((n) => n.userId == userId).toList()
-        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  List<AppNotification> forUser(String userId) => _all
+      .where((n) => n.userId == userId)
+      .toList()
+    // Newest first, stable on same-millisecond ties: a single action can
+    // fan out several notifications in the SAME millisecond, and a
+    // createdAt-only sort left their order at the mercy of Hive iteration
+    // order — the list could reorder/flicker between reads. (QA round 5.)
+    ..sort(
+        (a, b) => Ordering.newestFirst(a.createdAt, a.id, b.createdAt, b.id));
 
   @override
   int unreadCount(String userId) =>

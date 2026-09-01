@@ -91,8 +91,17 @@ class _ReviewCard extends StatelessWidget {
           if (c.verificationStatus == 'submitted')
             FilledButton.tonalIcon(
               onPressed: () {
-                _ds.setVerificationStatus(c.id, 'under_review');
-                showToast(context, '${c.name} moved to review');
+                // Honour the state-machine result so a stale card / double-tap
+                // can't show a success toast for a transition that was a no-op
+                // (QA round 15).
+                final ok = _ds.setVerificationStatus(c.id, 'under_review');
+                showToast(
+                  context,
+                  ok
+                      ? '${c.name} moved to review'
+                      : '${c.name} was already updated',
+                  error: !ok,
+                );
               },
               icon: const Icon(Icons.search, size: 18),
               label: const Text('Start review'),
@@ -100,8 +109,12 @@ class _ReviewCard extends StatelessWidget {
           FilledButton.icon(
             style: FilledButton.styleFrom(backgroundColor: AppColors.ok),
             onPressed: () {
-              _ds.setVerificationStatus(c.id, 'approved');
-              showToast(context, '${c.name} approved');
+              final ok = _ds.setVerificationStatus(c.id, 'approved');
+              showToast(
+                context,
+                ok ? '${c.name} approved' : '${c.name} was already updated',
+                error: !ok,
+              );
             },
             icon: const Icon(Icons.check, size: 18),
             label: const Text('Approve'),
@@ -109,8 +122,12 @@ class _ReviewCard extends StatelessWidget {
           FilledButton.icon(
             style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
             onPressed: () {
-              _ds.setVerificationStatus(c.id, 'rejected');
-              showToast(context, '${c.name} rejected', error: true);
+              final ok = _ds.setVerificationStatus(c.id, 'rejected');
+              showToast(
+                context,
+                ok ? '${c.name} rejected' : '${c.name} was already updated',
+                error: true,
+              );
             },
             icon: const Icon(Icons.close, size: 18),
             label: const Text('Reject'),

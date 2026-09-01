@@ -1,5 +1,6 @@
 import '../../core/errors/failures.dart';
 import '../../core/utils/password_hasher.dart';
+import '../../core/utils/validators.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/repositories/repositories.dart';
 import '../datasources/local/hive_local_datasource.dart';
@@ -35,11 +36,17 @@ class AuthRepositoryImpl implements AuthRepository {
     String? defaultCity,
   }) {
     final normalized = email.trim().toLowerCase();
-    if (normalized.isEmpty || !normalized.contains('@')) {
+    // Shared validation rules (single source of truth) — keeps this repository
+    // and the DataService facade in agreement.
+    if (!Validators.isNonEmptyName(name)) {
+      throw const ValidationFailure('Please enter your name.');
+    }
+    if (!Validators.isValidEmail(normalized)) {
       throw const ValidationFailure('Please enter a valid email address.');
     }
-    if (password.length < 4) {
-      throw const ValidationFailure('Password must be at least 4 characters.');
+    if (!Validators.isValidPassword(password)) {
+      throw const ValidationFailure(
+          'Password must be at least ${Validators.minPasswordLength} characters.');
     }
     if (_users.any((u) => u.email == normalized)) {
       throw const AuthFailure('An account with that email already exists.');

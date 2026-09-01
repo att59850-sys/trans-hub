@@ -47,7 +47,10 @@ class CreateBooking {
 class UpdateBookingStatus {
   const UpdateBookingStatus(this._bookings);
   final BookingRepository _bookings;
-  void call(String bookingId, BookingStatus status, {String note = ''}) =>
+
+  /// Returns `true` when the transition was applied, `false` if it was an
+  /// illegal move or the booking was not found.
+  bool call(String bookingId, BookingStatus status, {String note = ''}) =>
       _bookings.setStatus(bookingId, status, note: note);
 }
 

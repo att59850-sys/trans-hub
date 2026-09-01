@@ -21,8 +21,12 @@ class TransportService {
   bool active;
 
   /// Human-friendly price label, e.g. `$120` or `$2 / kg` or `On quote`.
+  ///
+  /// Renders defensively: a non-finite (NaN/±Infinity) or non-positive price is
+  /// treated as "On quote" so a corrupt or unsanitized value can never crash the
+  /// card (`(±Inf).toInt()` throws) or show garbage like `$NaN` / `$-50`.
   String get priceLabel {
-    if (unit == 'quote' || price == 0) return 'On quote';
+    if (unit == 'quote' || !price.isFinite || price <= 0) return 'On quote';
     final p = price == price.roundToDouble()
         ? '\$${price.toInt()}'
         : '\$${price.toStringAsFixed(2)}';
