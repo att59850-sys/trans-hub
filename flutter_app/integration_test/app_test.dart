@@ -286,7 +286,11 @@ void main() {
       expect(notifications.forUser('u2'), hasLength(1));
 
       final first = notifications.forUser('u1').first;
-      notifications.markRead(first.id);
+      // Owner-scoped mark-read (QA round 20): another user cannot clear it,
+      // but the rightful owner can.
+      expect(notifications.markRead('u2', first.id), isFalse);
+      expect(notifications.unreadCount('u1'), 2);
+      expect(notifications.markRead('u1', first.id), isTrue);
       expect(notifications.unreadCount('u1'), 1);
 
       notifications.markAllRead('u1');

@@ -539,7 +539,11 @@ class DataService extends ChangeNotifier {
   }
 
   void markNotificationRead(String id) {
-    _notifications.markRead(id);
+    final u = currentUser;
+    if (u == null) return;
+    // Scope to the signed-in user so a stale/misrouted id can't clear another
+    // account's unread badge (QA round 20).
+    _notifications.markRead(u.id, id);
     notifyListeners();
   }
 

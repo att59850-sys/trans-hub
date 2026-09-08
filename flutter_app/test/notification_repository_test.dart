@@ -46,10 +46,10 @@ void main() {
     }
     expect(repo.unreadCount(u), 5);
 
-    repo.markRead(ids.first);
+    expect(repo.markRead(u, ids.first), isTrue);
     expect(repo.unreadCount(u), 4);
 
-    repo.markRead(ids.first); // idempotent
+    expect(repo.markRead(u, ids.first), isTrue); // idempotent
     expect(repo.unreadCount(u), 4);
 
     repo.markAllRead(u);
@@ -59,10 +59,30 @@ void main() {
   });
 
   test('no-op safety: unknown id and empty user do not throw', () {
-    repo.markRead('n_doesnotexist');
+    expect(repo.markRead(u, 'n_doesnotexist'), isFalse);
     repo.markAllRead(u);
     expect(repo.unreadCount(u), 0);
     expect(repo.forUser(u), isEmpty);
+  });
+
+  test('markRead is scoped to the owner (QA round 20)', () {
+    final mine = AppNotification(userId: u, title: 'to alice');
+    final theirs = AppNotification(userId: other, title: 'to bob');
+    repo.add(mine);
+    repo.add(theirs);
+    expect(repo.unreadCount(u), 1);
+    expect(repo.unreadCount(other), 1);
+
+    // Alice cannot mark Bob's notification read via its id.
+    expect(repo.markRead(u, theirs.id), isFalse,
+        reason: "one user must not clear another's notification");
+    expect(repo.unreadCount(other), 1, reason: "bob's badge is untouched");
+
+    // The rightful owner can.
+    expect(repo.markRead(other, theirs.id), isTrue);
+    expect(repo.unreadCount(other), 0);
+    // Alice's own note is unaffected throughout.
+    expect(repo.unreadCount(u), 1);
   });
 
   test('per-user isolation', () {

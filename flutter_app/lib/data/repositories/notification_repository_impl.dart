@@ -34,11 +34,18 @@ class NotificationRepositoryImpl implements NotificationRepository {
       _ds.notifications.put(notification.id, notification.toJson());
 
   @override
-  void markRead(String notificationId) {
+  bool markRead(String userId, String notificationId) {
     final j = _ds.notifications.get(notificationId);
-    if (j == null) return;
-    final n = appNotificationFromJson(j as Map)..read = true;
-    _ds.notifications.put(n.id, n.toJson());
+    if (j == null) return false;
+    final n = appNotificationFromJson(j as Map);
+    // Owner scope: never let one account mark another user's notification read
+    // (QA round 20). A stale/misrouted id must be a safe no-op.
+    if (n.userId != userId) return false;
+    if (!n.read) {
+      n.read = true;
+      _ds.notifications.put(n.id, n.toJson());
+    }
+    return true;
   }
 
   @override
